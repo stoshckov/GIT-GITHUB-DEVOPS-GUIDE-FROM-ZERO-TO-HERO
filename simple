@@ -1,0 +1,122 @@
+import os
+
+def write_section(file, title, content):
+    section_text = f"\n# {title}\n{content}\n\n"
+    file.write(section_text)
+    print(section_text)
+
+def generate_guide():
+    guide_path = "self_study_guide.txt"
+
+    with open(guide_path, "w") as guide:
+        # Header
+        header = "Git and GitHub Self-Study Guide\n================================\n\n"
+        guide.write(header)
+        print(header)
+
+        # Section A: Create a New Repository
+        section_a = (
+            "1. Create a new directory, CD into it and Initialize it:\n"
+            "   mkdir my-new-project && cd my-new-project && git init\n\n"
+            "2. Add files to your repository:\n"
+            "   git add .\n\n"
+            "3. Make your first commit:\n"
+            "   git commit -m \"Initial commit\"\n\n"
+            "4. Other ways to create a new repository/alternatives:\n"
+            "   a. Create a local copy of an existing remote repository:\n"
+            "      git clone <repository-url>        # copies all files, branches, and commit history to your local machine\n"
+            "      cd <repository-name>\n\n"
+            "   b. Using GitHub (or other platforms) to initialize the repository:\n"
+            "      # Create a new repository directly on GitHub (or another platform) via the web interface\n"
+            "      git clone git@github.com:username/repository-name.git # Once created, clone it locally using\n" 
+            "      cd repository-name                # cd into it and verify\n"
+        )
+        write_section(guide, "A. Create a New Repository", section_a)
+        # Section B: Link the Local Repository to a Remote Repository
+        section_b = (
+            "1. Create a new repository on GitHub without initializing it with any files.\n\n"
+            "2. Add the remote URL to your local repository:\n"
+            "   git remote add origin <REMOTE_URL>\n"
+        )
+        write_section(guide, "B. Link the Local Repository to a Remote Repository", section_b)
+
+        # Section C: Push the Initial Commit to the Remote Repository
+        section_c = (
+            "1. Push your local commits to the remote repository:\n"
+            "   git push -u origin main\n\n"
+            "   If your default branch is 'master' instead of 'main', use:\n"
+            "   git push -u origin master\n"
+        )
+        write_section(guide, "C. Push the Initial Commit to the Remote Repository", section_c)
+
+        # Section D: Branching
+        section_d = (
+            "1. Create a new branch:\n"
+            "   git checkout -b <branch-name>\n\n"
+            "2. View all branches:\n"
+            "   git branch\n"
+            "   git branch -r\n"
+            "   git branch -a\n\n"
+            "3. Switch to an existing branch:\n"
+            "   git checkout <branch-name>\n\n"
+            "4. Work on the new branch (make changes, stage, and commit):\n"
+            "   git add .\n"
+            "   git commit -m 'Your message'\n\n"
+            "5. Push the new branch to remote:\n"
+            "   git push -u origin <branch-name>\n\n"
+            "6. Merge the branch back to main:\n"
+            "   git checkout main\n"
+            "   git pull origin main\n"
+            "   git merge <branch-name>\n"
+            "   git push origin main\n\n"
+            "7. Delete the merged branch locally:\n"
+            "   git branch -d <branch-name>\n"
+            "   Or force delete unmerged branches:\n"
+            "   git branch -D <branch-name>\n\n"
+            "8. Delete the branch from the remote repository:\n"
+            "   git push origin --delete <branch-name>\n"
+        )
+        write_section(guide, "D. Branching", section_d)
+
+        # Section E: Clone the Repository
+        section_e = (
+            "1. Clone the repository:\n"
+            "   git clone <REPO_URL>\n\n"
+            "2. Fetch all branches:\n"
+            "   git fetch --all\n\n"
+            "3. List all branches:\n"
+            "   git branch -a\n\n"
+            "4. Check out all remote branches:\n"
+            "   for branch in $(git branch -r | grep -v '\\->'); do\n"
+            "       git branch --track \"${branch#origin/}\" \"$branch\"\n"
+            "   done\n\n"
+            "5. Pull updates for all branches:\n"
+            "   git pull --all\n"
+        )
+        write_section(guide, "E. Clone the Repository", section_e)
+
+        # Section F: Update a Branch After Cloning
+        section_f = (
+            "1. Ensure you’re on the desired branch:\n"
+            "   git checkout <branch-name>\n\n"
+            "2. Pull updates from the remote:\n"
+            "   git pull\n\n"
+            "3. Fetch without automatically merging:\n"
+            "   git fetch\n"
+            "   git diff <branch-name> origin/<branch-name>\n"
+            "   git merge origin/<branch-name>\n\n"
+            "4. Handle potential conflicts:\n"
+            "   Resolve conflicts manually in your editor, then:\n"
+            "   git add <file>\n"
+            "   git commit\n\n"
+            "5. Push local changes back to remote:\n"
+            "   git push\n\n"
+            "6. Stay updated:\n"
+            "   git fetch --all\n"
+        )
+        write_section(guide, "F. Update a Branch After Cloning", section_f)
+
+    print(f"Self-study guide has been saved to: {os.path.abspath(guide_path)}")
+
+# Run the script
+generate_guide()
