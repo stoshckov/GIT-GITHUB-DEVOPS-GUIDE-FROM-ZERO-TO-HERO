@@ -1,0 +1,463 @@
+#!/usr/bin/env python3
+import os
+import sys
+
+# ANSI color codes for styling
+RESET = "\033[0m"
+BWHITE = "\033[1;37m"
+CYAN = "\033[1;36m"
+MAGENTA = "\033[1;35m"
+YELLOW = "\033[0;33m"
+GREEN = "\033[0;32m"
+BBLUE = "\033[1;34m"
+BOLD = "\033[1m"
+
+def print_title(title):
+    print(f"{BWHITE}{title}{RESET}\n")
+
+def print_categories():
+    print(f"{CYAN}{BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{RESET}")
+    print(f"{BWHITE}{BOLD}                          GIT & GITHUB DEVOPS GUIDE - FROM ZERO TO EXPERT{RESET}")
+    print(f"{CYAN}{BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{RESET}\n")
+    print("Categories:\n")
+    for category in guide.keys():
+        print(f"{CYAN}- {category}{RESET}")
+    print()
+
+def print_usage():
+    print(f"{BWHITE}Usage:{RESET}")
+    print("gdb <category>    # to view all commands and concepts in that category")
+    print("gdb <keyword>     # to view details of a specific command/concept\n")
+
+def print_main_entry(entry):
+    print(f"{BBLUE}{BOLD}───────────────────────────────────────────────────────{RESET}\n")
+    print(f"{BWHITE}🔑 Keyword:{RESET} {entry['keyword']}")
+    print(f"{YELLOW}{entry['description']}{RESET}")
+    print(f"{GREEN}Command: {entry['command']}{RESET}")
+    if "variations" in entry and entry["variations"]:
+        print(f"\n{BBLUE}Variations & Alternatives:{RESET}")
+        for var in entry["variations"]:
+            print(f"{YELLOW}- {var['desc']}{RESET}")
+            print(f"{GREEN}  {var['cmd']}{RESET}")
+
+def print_keyword_list(keywords, items_per_line=6):
+    total = len(keywords)
+    print(f"Total keywords ({total})")
+
+    if total == 0:
+        print("[]\n")
+        return
+
+    print("[", end="")
+    for i, kw in enumerate(keywords):
+        if i > 0 and i % items_per_line == 0:
+            print("\n ", end="")  # newline + space for indentation
+        print(kw, end="")
+        if i < total - 1:
+            print(", ", end="")
+    print("]\n")
+
+def print_category(category):
+    if category not in guide:
+        print(f"{YELLOW}No such category: {category}{RESET}\n")
+        return
+    cat_title = category.replace('_', ' ').upper()
+
+    # Top banner for the category
+    print(f"{CYAN}{BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{RESET}")
+    print(f"{BWHITE}{BOLD}                         🛠️  {cat_title}  🛠️{RESET}")
+    print(f"{CYAN}{BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{RESET}\n")
+
+    overview_text = {
+        "foundation": "Master fundamental Git operations to version your codebase.",
+        "access_and_authentication": "Set up secure and convenient access to GitHub (SSH keys, tokens, credential helpers).",
+        "branching_strategies": "Learn structured branching for reliable integration, feature isolation, and parallel development.",
+        "collaboration_workflows": "Adopt workflows for teaming on projects, handling forks, pull requests, and code reviews.",
+        "automation_ci_cd": "Integrate automated testing, building, and deployment using GitHub Actions and CI/CD pipelines.",
+        "advanced_git_ops": "Handle complex Git tasks like rebasing, rewriting history, bisecting bugs, and managing large repos.",
+        "security_compliance": "Enforce policies, scan for vulnerabilities, sign commits, and keep dependencies secure.",
+        "infrastructure_as_code": "Treat infra as code, version IaC templates, and integrate changes through Git-driven workflows.",
+        "devops_best_practices": "Adopt proven DevOps workflows, containerization, documentation, and continuous improvement.",
+        "gitops_and_platform_engineering": "Use Git as the single source of truth, manage declarative infrastructure, and embrace GitOps platforms."
+    }
+
+    print(f"{YELLOW}🔎 Concept Overview{RESET}")
+    print(f"{CYAN}{BOLD}───────────────────{RESET}")
+    if category in overview_text:
+        print(overview_text[category] + "\n")
+
+    entries = guide[category]
+    keywords = [entry["keyword"] for entry in entries]
+
+    print(f"{BWHITE}📜 Summary{RESET}")
+    print(f"{CYAN}{BOLD}──────────{RESET}")
+    print_keyword_list(keywords, items_per_line=6)
+
+    for entry in entries:
+        print_main_entry(entry)
+        print()
+
+def search_guide(term):
+    term_lower = term.lower()
+    matches = []
+    for category_name, category_commands in guide.items():
+        for entry in category_commands:
+            text_check = entry["keyword"].lower() + " " + entry["description"].lower() + " " + entry["command"].lower()
+            if term_lower in text_check:
+                matches.append((category_name, entry["keyword"]))
+                continue
+            if "variations" in entry:
+                for var in entry["variations"]:
+                    var_text = var["desc"].lower() + " " + var["cmd"].lower()
+                    if term_lower in var_text:
+                        matches.append((category_name, entry["keyword"]))
+                        break
+    return matches
+
+def print_command(keyword):
+    found = False
+    for category_name, category_commands in guide.items():
+        for entry in category_commands:
+            if entry["keyword"] == keyword:
+                cat_title = category_name.replace('_', ' ').upper()
+                print(f"{CYAN}{BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{RESET}")
+                print(f"{BWHITE}{BOLD}                    COMMAND: {keyword} (Category: {cat_title}){RESET}")
+                print(f"{CYAN}{BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{RESET}\n")
+                print_main_entry(entry)
+                found = True
+                break
+        if found:
+            break
+    if not found:
+        matches = search_guide(keyword)
+        if matches:
+            print(f"{YELLOW}No exact command found for keyword: {keyword}{RESET}\n")
+            print(f"{BWHITE}Possible matches:{RESET}")
+            seen = set()
+            for category_name, kw in matches:
+                if (category_name, kw) not in seen:
+                    seen.add((category_name, kw))
+                    cat_title = category_name.replace('_', ' ').upper()
+                    print(f"- {kw} (in {cat_title})")
+        else:
+            print(f"{YELLOW}No command found for keyword: {keyword}{RESET}")
+
+#############################
+# 25 Keywords per Category  #
+#############################
+
+foundation_entries = [
+    {"keyword": "init", "description": "Initialize a new Git repository.", "command": "git init"},
+    {"keyword": "config", "description": "Configure user identity and other settings.", "command": "git config"},
+    {"keyword": "add", "description": "Stage changes for the next commit.", "command": "git add <file>"},
+    {"keyword": "commit", "description": "Record staged changes in history.", "command": "git commit -m 'msg'"},
+    {"keyword": "status", "description": "Show working directory and staging area status.", "command": "git status"},
+    {"keyword": "log", "description": "View commit history.", "command": "git log"},
+    {"keyword": "diff", "description": "Show changes between commits, working tree, etc.", "command": "git diff"},
+    {"keyword": "restore", "description": "Discard changes in working directory or unstage.", "command": "git restore"},
+    {"keyword": "rm", "description": "Remove files from working tree and index.", "command": "git rm <file>"},
+    {"keyword": "mv", "description": "Move or rename a file.", "command": "git mv old new"},
+    {"keyword": "clone", "description": "Clone a repository into a new directory.", "command": "git clone <url>"},
+    {"keyword": "show", "description": "Show various types of objects.", "command": "git show"},
+    {"keyword": "blame", "description": "Show who last modified each line of a file.", "command": "git blame <file>"},
+    {"keyword": "grep", "description": "Search working tree for lines matching a pattern.", "command": "git grep <pattern>"},
+    {"keyword": "clean", "description": "Remove untracked files.", "command": "git clean -f"},
+    {"keyword": "ls-files", "description": "Show tracked files in the working directory.", "command": "git ls-files"},
+    {"keyword": "help", "description": "Get help on Git commands.", "command": "git help <command>"},
+    {"keyword": "describe", "description": "Describe a commit using nearest tags.", "command": "git describe"},
+    {"keyword": "reflog", "description": "Show reference logs of HEAD and branches.", "command": "git reflog"},
+    {"keyword": "apply", "description": "Apply a patch to the working directory.", "command": "git apply <patch>"},
+    {"keyword": "archive", "description": "Create an archive of files from a tree.", "command": "git archive <tree-ish>"},
+    {"keyword": "fsck", "description": "Check integrity of the repository data.", "command": "git fsck"},
+    {"keyword": "cat-file", "description": "Examine Git objects by type and content.", "command": "git cat-file -p <object>"},
+    {"keyword": "gc", "description": "Cleanup unnecessary files and optimize the repo.", "command": "git gc"},
+    {"keyword": "notes", "description": "Add or inspect object notes.", "command": "git notes"}
+]
+
+access_and_authentication_entries = [
+    {"keyword": "ssh_setup", "description": "Generate SSH keys and add to GitHub for passwordless auth.", "command": "ssh-keygen -t ed25519 -C 'you@example.com'"},
+    {"keyword": "personal_access_tokens", "description": "Use GitHub PAT for HTTPS auth.", "command": "N/A (GitHub UI to generate token)"},
+    {"keyword": "credential_helper", "description": "Cache or store credentials for reuse.", "command": "git config --global credential.helper cache"},
+    {"keyword": "github_cli_auth", "description": "Authenticate GitHub CLI.", "command": "gh auth login"},
+    {"keyword": "gpg_signing_setup", "description": "Set up GPG for commit signing.", "command": "gpg --generate-key"},
+    {"keyword": "gpg_signing_config", "description": "Configure Git to sign commits.", "command": "git config --global commit.gpgsign true"},
+    {"keyword": "ssh_agent_start", "description": "Start ssh-agent to manage keys.", "command": "eval $(ssh-agent -s)"},
+    {"keyword": "ssh_add_key", "description": "Add SSH private key to agent.", "command": "ssh-add ~/.ssh/id_ed25519"},
+    {"keyword": "https_auth_store", "description": "Store HTTPS credentials permanently.", "command": "git config --global credential.helper store"},
+    {"keyword": "credential_timeout", "description": "Set credential cache timeout.", "command": "git config --global credential.helper 'cache --timeout=3600'"},
+    {"keyword": "gh_auth_token", "description": "Authenticate gh CLI with a token.", "command": "gh auth login --with-token < token.txt"},
+    {"keyword": "oauth_flow", "description": "Use OAuth flow for GitHub CLI auth.", "command": "gh auth login (follow prompts)"},
+    {"keyword": "2fa_setup", "description": "Enable two-factor auth on GitHub for secure access.", "command": "N/A (GitHub UI)"},
+    {"keyword": "gpg_verify", "description": "Verify GPG signed commits.", "command": "git verify-commit <commit>"},
+    {"keyword": "ssh_known_hosts", "description": "Manage SSH known hosts for GitHub.", "command": "cat ~/.ssh/known_hosts"},
+    {"keyword": "ssh_strict_keychecking", "description": "Enable strict host key checking for SSH.", "command": "ssh -o StrictHostKeyChecking=yes git@github.com"},
+    {"keyword": "gh_auth_status", "description": "Check GitHub CLI auth status.", "command": "gh auth status"},
+    {"keyword": "gh_auth_logout", "description": "Log out of GitHub CLI.", "command": "gh auth logout"},
+    {"keyword": "x509_signing", "description": "Use X.509 certs to sign commits.", "command": "git config --global gpg.format x509"},
+    {"keyword": "askpass", "description": "Use GIT_ASKPASS for credentials.", "command": "export GIT_ASKPASS=/path/to/script"},
+    {"keyword": "git_credential_manager", "description": "Use Git Credential Manager for cross-platform credential storage.", "command": "git-credential-manager-core configure"},
+    {"keyword": "ssh_config_file", "description": "Use SSH config file to define GitHub host aliases.", "command": "vim ~/.ssh/config"},
+    {"keyword": "gh_secret", "description": "Manage GitHub repository secrets (for actions).", "command": "gh secret set MY_SECRET"},
+    {"keyword": "gpg_list_keys", "description": "List GPG keys to confirm identity setup.", "command": "gpg --list-keys"},
+    {"keyword": "ssh_test_connection", "description": "Test SSH auth to GitHub.", "command": "ssh -T git@github.com"}
+]
+
+branching_strategies_entries = [
+    {"keyword": "branch_list", "description": "List local branches.", "command": "git branch"},
+    {"keyword": "branch_create", "description": "Create a new branch.", "command": "git branch feature"},
+    {"keyword": "branch_delete", "description": "Delete a local branch.", "command": "git branch -d feature"},
+    {"keyword": "branch_rename", "description": "Rename a branch.", "command": "git branch -m old_name new_name"},
+    {"keyword": "branch_track_remote", "description": "Set upstream branch to track remote.", "command": "git branch --set-upstream-to=origin/feature feature"},
+    {"keyword": "checkout", "description": "Switch to a branch.", "command": "git checkout feature"},
+    {"keyword": "switch_new", "description": "Create and switch to a new branch.", "command": "git switch -c newbranch"},
+    {"keyword": "rebase", "description": "Re-apply commits on top of another base branch.", "command": "git rebase main"},
+    {"keyword": "merge", "description": "Merge another branch into the current one.", "command": "git merge dev"},
+    {"keyword": "cherry_pick", "description": "Apply changes from a specific commit onto current branch.", "command": "git cherry-pick <commit>"},
+    {"keyword": "merge_squash", "description": "Squash merge changes from a branch.", "command": "git merge --squash feature"},
+    {"keyword": "merge_noff", "description": "Merge without fast-forward.", "command": "git merge --no-ff branch"},
+    {"keyword": "rebase_interactive", "description": "Interactively rebase for clean history.", "command": "git rebase -i main"},
+    {"keyword": "branch_contains", "description": "List branches containing a commit.", "command": "git branch --contains <commit>"},
+    {"keyword": "checkout_commit", "description": "Check out a commit in detached HEAD.", "command": "git checkout <commit>"},
+    {"keyword": "worktree_add", "description": "Add a new working tree for a branch.", "command": "git worktree add ../new_dir branch"},
+    {"keyword": "orphan_branch", "description": "Create a branch with no parents.", "command": "git checkout --orphan newroot"},
+    {"keyword": "rebase_onto", "description": "Rebase a range of commits onto another branch.", "command": "git rebase --onto main dev feature"},
+    {"keyword": "branch_up_to_date", "description": "Check if your branch is up-to-date with remote.", "command": "git fetch && git status"},
+    {"keyword": "branch_graph_view", "description": "View branch graph in log.", "command": "git log --graph --oneline --decorate"},
+    {"keyword": "merge_abort", "description": "Abort a failed merge.", "command": "git merge --abort"},
+    {"keyword": "rebase_abort", "description": "Abort a failed rebase.", "command": "git rebase --abort"},
+    {"keyword": "remote_prune", "description": "Prune remote-tracking branches no longer on remote.", "command": "git remote prune origin"},
+    {"keyword": "branch_at_commit", "description": "Create a branch at a specific commit.", "command": "git branch feature <commit>"},
+    {"keyword": "rebase_autostash", "description": "Rebase with auto-stash of local changes.", "command": "git rebase --autostash main"}
+]
+
+collaboration_workflows_entries = [
+    {"keyword": "remote", "description": "Manage remote repositories.", "command": "git remote add origin <url>"},
+    {"keyword": "push", "description": "Push local commits to a remote branch.", "command": "git push -u origin main"},
+    {"keyword": "pull", "description": "Fetch and integrate remote changes.", "command": "git pull"},
+    {"keyword": "fork_repo", "description": "Fork a GitHub repo to your account (GitHub UI).", "command": "N/A (GitHub UI)"},
+    {"keyword": "pull_request", "description": "Open a pull request for code review.", "command": "gh pr create"},
+    {"keyword": "review_pr", "description": "Review a pull request on GitHub.", "command": "gh pr review"},
+    {"keyword": "merge_pr", "description": "Merge a pull request via CLI.", "command": "gh pr merge"},
+    {"keyword": "fetch", "description": "Fetch changes from remote without merging.", "command": "git fetch"},
+    {"keyword": "upstream", "description": "Add an upstream remote to sync a fork.", "command": "git remote add upstream <url>"},
+    {"keyword": "sync_fork", "description": "Sync your fork with the original repo.", "command": "git fetch upstream && git merge upstream/main"},
+    {"keyword": "gh_issue", "description": "Create or manage GitHub issues.", "command": "gh issue create"},
+    {"keyword": "gh_discussions", "description": "Participate in GitHub Discussions.", "command": "gh discussion list"},
+    {"keyword": "gh_labels", "description": "Manage GitHub labels for issues/PRs.", "command": "gh label create 'bug'"},
+    {"keyword": "push_tags", "description": "Push local tags to remote.", "command": "git push --tags"},
+    {"keyword": "remote_show", "description": "Show information about a remote.", "command": "git remote show origin"},
+    {"keyword": "gh_repo_create", "description": "Create a new GitHub repo from CLI.", "command": "gh repo create"},
+    {"keyword": "gh_repo_clone", "description": "Clone a repo via GitHub CLI.", "command": "gh repo clone owner/repo"},
+    {"keyword": "gh_pr_checkout", "description": "Check out a PR locally.", "command": "gh pr checkout <pr_number>"},
+    {"keyword": "gh_actions_view", "description": "View GitHub Actions runs.", "command": "gh run list"},
+    {"keyword": "commit_coauthors", "description": "Add co-authors to commits (collab).", "command": "git commit -m 'msg\n\nCo-authored-by: Name <email>'"},
+    {"keyword": "gh_milestones", "description": "Manage GitHub milestones for releases.", "command": "gh milestone create 'v1.0'"},
+    {"keyword": "gh_assign", "description": "Assign issues or PRs to collaborators.", "command": "gh issue edit <num> --assignee user"},
+    {"keyword": "gh_codeowners", "description": "Use CODEOWNERS file to auto-request reviews.", "command": "N/A (Add CODEOWNERS file to repo)"},
+    {"keyword": "gh_actions_artifacts", "description": "Download artifacts from GitHub Actions runs.", "command": "gh run download <run_id>"},
+    {"keyword": "gh_discussions_create", "description": "Create a discussion for broader collab.", "command": "gh discussion create"}
+]
+
+# Due to the message size limit, we won't detail all variations in the remaining categories, 
+# but we follow the same pattern: 25 meaningful keywords/commands per category.
+
+automation_ci_cd_entries = [
+    {"keyword": "github_actions", "description": "Use GitHub Actions to define CI/CD workflows.", "command": "N/A (.github/workflows/*.yml)"},
+    {"keyword": "gh_workflow_list", "description": "List workflows in a repo.", "command": "gh workflow list"},
+    {"keyword": "gh_run_list", "description": "List recent workflow runs.", "command": "gh run list"},
+    {"keyword": "gh_run_watch", "description": "Watch a workflow run in real-time.", "command": "gh run watch <run_id>"},
+    {"keyword": "gh_run_view", "description": "View a single workflow run details.", "command": "gh run view <run_id>"},
+    {"keyword": "gh_artifact_download", "description": "Download build artifacts.", "command": "gh run download <run_id>"},
+    {"keyword": "actions_cache", "description": "Use actions/cache to speed builds.", "command": "N/A (GitHub Actions YAML)"},
+    {"keyword": "actions_secrets", "description": "Store secrets for CI/CD pipelines.", "command": "gh secret set NAME"},
+    {"keyword": "actions_env", "description": "Use env vars in workflows.", "command": "N/A (in workflow YAML)"},
+    {"keyword": "actions_matrix", "description": "Test multiple versions/platforms with matrix builds.", "command": "N/A (YAML matrix)"},
+    {"keyword": "actions_reusable_workflow", "description": "Call reusable workflows from another workflow.", "command": "N/A (YAML)"},
+    {"keyword": "actions_manual_trigger", "description": "Manually trigger workflows using 'workflow_dispatch'.", "command": "N/A (YAML)"},
+    {"keyword": "actions_cron", "description": "Schedule workflows with cron syntax.", "command": "N/A (YAML)"},
+    {"keyword": "actions_status_checks", "description": "Require CI checks to pass before merging.", "command": "GitHub Branch Settings"},
+    {"keyword": "actions_selfhosted_runner", "description": "Set up self-hosted runners for custom CI/CD env.", "command": "N/A (GitHub UI)"},
+    {"keyword": "actions_artifact_upload", "description": "Upload build artifacts in a job.", "command": "N/A (using actions/upload-artifact)"},
+    {"keyword": "actions_test_reports", "description": "Produce test reports to display in PR.", "command": "N/A (3rd party actions)"},
+    {"keyword": "actions_deployment", "description": "Automate deployments after CI passes.", "command": "N/A (YAML + environment)"},
+    {"keyword": "actions_approval_job", "description": "Require manual approval job in workflow.", "command": "N/A (YAML with environment protection)"},
+    {"keyword": "actions_retries", "description": "Retry failed steps with 'if: failure()'", "command": "N/A (YAML)"},
+    {"keyword": "actions_conditional", "description": "Run jobs conditionally using `if:`.", "command": "N/A (YAML)"},
+    {"keyword": "actions_cache_node", "description": "Cache node modules to speed Node builds.", "command": "actions/cache@v2"},
+    {"keyword": "actions_rollback", "description": "Rollback deployment if tests fail post-deploy.", "command": "N/A (workflow logic)"},
+    {"keyword": "actions_publish_package", "description": "Publish packages to GitHub Packages registry.", "command": "N/A (actions/setup-node + npm publish)"},
+    {"keyword": "actions_service_containers", "description": "Use service containers for integration tests.", "command": "N/A (YAML services: db, etc.)"}
+]
+
+advanced_git_ops_entries = [
+    {"keyword": "rebase_interactive", "description": "Interactively rebase to rearrange commits.", "command": "git rebase -i HEAD~5"},
+    {"keyword": "filter_branch", "description": "Rewrite history to remove sensitive data.", "command": "git filter-branch"},
+    {"keyword": "bfg", "description": "Use BFG Repo Cleaner to remove large files.", "command": "bfg --delete-files *.zip"},
+    {"keyword": "bisect", "description": "Find commit that introduced a bug via binary search.", "command": "git bisect start"},
+    {"keyword": "submodule_add", "description": "Add a Git submodule.", "command": "git submodule add <repo_url>"},
+    {"keyword": "submodule_update", "description": "Update submodules to correct commit.", "command": "git submodule update --init --recursive"},
+    {"keyword": "worktree", "description": "Use multiple working trees for one repo.", "command": "git worktree add ../path branch"},
+    {"keyword": "commit_amend", "description": "Amend last commit.", "command": "git commit --amend"},
+    {"keyword": "reset_soft", "description": "Reset HEAD but keep changes.", "command": "git reset --soft HEAD~1"},
+    {"keyword": "reset_hard", "description": "Reset HEAD and discard changes.", "command": "git reset --hard HEAD~1"},
+    {"keyword": "stash", "description": "Stash local changes temporarily.", "command": "git stash"},
+    {"keyword": "stash_pop", "description": "Apply and remove the latest stash.", "command": "git stash pop"},
+    {"keyword": "notes", "description": "Attach notes to commits without modifying them.", "command": "git notes add"},
+    {"keyword": "commit_message_template", "description": "Use a commit message template for consistency.", "command": "git config commit.template <file>"},
+    {"keyword": "revert", "description": "Create a new commit that undoes a previous commit.", "command": "git revert <commit>"},
+    {"keyword": "cherry_pick_range", "description": "Cherry-pick a range of commits.", "command": "git cherry-pick A..B"},
+    {"keyword": "bundle", "description": "Move a repository using bundles.", "command": "git bundle create repo.bundle --all"},
+    {"keyword": "replace", "description": "Replace objects with another.", "command": "git replace <old> <new>"},
+    {"keyword": "sparse_checkout", "description": "Check out only a subset of the repository.", "command": "git sparse-checkout init; git sparse-checkout set path/"},
+    {"keyword": "large_files_lfs", "description": "Manage large files with Git LFS.", "command": "git lfs track '*.psd'"},
+    {"keyword": "commit_graph", "description": "Use commit-graph for faster operations.", "command": "git commit-graph write"},
+    {"keyword": "pack_refs", "description": "Pack refs into a single file for efficiency.", "command": "git pack-refs"},
+    {"keyword": "fsmonitor", "description": "Use fsmonitor for faster status checks.", "command": "git config core.fsmonitor <script>"},
+    {"keyword": "rerere", "description": "Reuse recorded resolutions of merge conflicts.", "command": "git config rerere.enabled true"},
+    {"keyword": "am", "description": "Apply patches from email mbox.", "command": "git am < mbox"}
+]
+
+security_compliance_entries = [
+    {"keyword": "commit_signing_gpg", "description": "Sign commits using GPG keys.", "command": "git commit -S"},
+    {"keyword": "signed_tags", "description": "Create signed tags for releases.", "command": "git tag -s v1.0.0"},
+    {"keyword": "dependabot", "description": "Use Dependabot for automatic dependency updates.", "command": "N/A (GitHub UI/ dependabot.yml)"},
+    {"keyword": "secret_scanning", "description": "GitHub scans for leaked secrets.", "command": "N/A (GitHub Settings)"},
+    {"keyword": "code_scanning", "description": "Use CodeQL for code scanning.", "command": "N/A (GitHub Actions)"},
+    {"keyword": "vulnerability_alerts", "description": "Enable alerts for vulnerable dependencies.", "command": "N/A (GitHub UI)"},
+    {"keyword": "branch_protection", "description": "Set rules to protect main branch.", "command": "N/A (GitHub Branch Settings)"},
+    {"keyword": "requiring_reviews", "description": "Require PR reviews before merge.", "command": "N/A (GitHub Settings)"},
+    {"keyword": "required_checks", "description": "Require CI checks to pass.", "command": "N/A (GitHub Branch Settings)"},
+    {"keyword": "2fa_required", "description": "Require team members to use 2FA.", "command": "N/A (GitHub Org Settings)"},
+    {"keyword": "gpg_verify_commits", "description": "Verify signed commits and show 'verified' badge.", "command": "git verify-commit"},
+    {"keyword": "locked_branches", "description": "Disallow force pushes to certain branches.", "command": "N/A (GitHub Settings)"},
+    {"keyword": "security_policy", "description": "Add a SECURITY.md file to define security policies.", "command": "N/A (Add SECURITY.md)"},
+    {"keyword": "codeowners", "description": "Use CODEOWNERS to enforce review from code owners.", "command": "N/A (CODEOWNERS file)"},
+    {"keyword": "encrypted_secrets_actions", "description": "Use encrypted secrets in Actions.", "command": "gh secret set NAME"},
+    {"keyword": "npm_audit", "description": "Audit Node dependencies for vulnerabilities.", "command": "npm audit"},
+    {"keyword": "cargo_audit", "description": "Audit Rust dependencies for vulnerabilities.", "command": "cargo audit"},
+    {"keyword": "yarn_audit", "description": "Audit Yarn dependencies.", "command": "yarn audit"},
+    {"keyword": "docker_scan", "description": "Scan Docker images for vulnerabilities.", "command": "docker scan <image>"},
+    {"keyword": "trivy", "description": "Use Trivy to scan container images.", "command": "trivy image <image>"},
+    {"keyword": "sbom_generation", "description": "Generate SBOM to track dependencies.", "command": "cyclonedx-generate"},
+    {"keyword": "commit_message_lint", "description": "Use commitlint to enforce commit message style.", "command": "commitlint --from=main"},
+    {"keyword": "pre_commit_hooks", "description": "Use pre-commit hooks to run checks before commits.", "command": "pre-commit run --all-files"},
+    {"keyword": "license_check", "description": "Check licenses of dependencies.", "command": "licensee detect ."},
+    {"keyword": "security_advisories", "description": "Create GH Security Advisories for private disclosure.", "command": "N/A (GitHub UI)"}
+]
+
+infrastructure_as_code_entries = [
+    {"keyword": "terraform_init", "description": "Initialize a Terraform working directory.", "command": "terraform init"},
+    {"keyword": "terraform_plan", "description": "Show changes Terraform would make.", "command": "terraform plan"},
+    {"keyword": "terraform_apply", "description": "Apply IaC changes.", "command": "terraform apply"},
+    {"keyword": "terraform_fmt", "description": "Format Terraform code.", "command": "terraform fmt"},
+    {"keyword": "terraform_validate", "description": "Validate Terraform config.", "command": "terraform validate"},
+    {"keyword": "ansible_playbook", "description": "Run Ansible playbook to configure infrastructure.", "command": "ansible-playbook site.yml"},
+    {"keyword": "packer_build", "description": "Build machine images with Packer.", "command": "packer build template.json"},
+    {"keyword": "kustomize_build", "description": "Build K8s manifests from kustomization.", "command": "kustomize build"},
+    {"keyword": "helm_template", "description": "Render Helm charts locally.", "command": "helm template chart/"},
+    {"keyword": "helm_upgrade", "description": "Install/upgrade Helm releases.", "command": "helm upgrade --install release chart/"},
+    {"keyword": "pulumi_up", "description": "Manage infra with Pulumi.", "command": "pulumi up"},
+    {"keyword": "salt_apply", "description": "Apply Salt states to infra.", "command": "salt '*' state.apply"},
+    {"keyword": "chef_apply", "description": "Apply Chef cookbooks (with local mode).", "command": "chef-client --local-mode"},
+    {"keyword": "cloudformation_deploy", "description": "Deploy AWS CloudFormation templates.", "command": "aws cloudformation deploy --template-file stack.yaml"},
+    {"keyword": "azure_arm_deploy", "description": "Deploy Azure Resource Manager templates.", "command": "az deployment group create --template-file template.json"},
+    {"keyword": "gcloud_deployment_manager", "description": "Manage GCP infra with Deployment Manager.", "command": "gcloud deployment-manager deployments create ..."},
+    {"keyword": "gitops_for_iac", "description": "Use GitOps patterns for Infra changes (ArgoCD).", "command": "N/A (ArgoCD with IaC repo)"},
+    {"keyword": "policy_as_code_iac", "description": "Use OPA/Conftest to enforce IaC policies.", "command": "conftest test terraform/"},
+    {"keyword": "terraform_import", "description": "Import existing resources into Terraform state.", "command": "terraform import aws_instance.example i-1234567890"},
+    {"keyword": "terraform_destroy", "description": "Remove all managed infrastructure.", "command": "terraform destroy"},
+    {"keyword": "azure_bicep", "description": "Use Bicep for Azure IaC.", "command": "az deployment group create --template-file main.bicep"},
+    {"keyword": "ansible_lint", "description": "Lint Ansible playbooks.", "command": "ansible-lint"},
+    {"keyword": "terraform_state", "description": "Manage Terraform state files.", "command": "terraform state list"},
+    {"keyword": "kops", "description": "Manage Kubernetes clusters on AWS with kOps.", "command": "kops update cluster --yes"},
+    {"keyword": "flux_iac", "description": "Use Flux to reconcile IaC changes on cluster.", "command": "flux apply -f ./infrastructure"}
+]
+
+devops_best_practices_entries = [
+    {"keyword": "gitflow_model", "description": "Adopt GitFlow branching model.", "command": "N/A (Process)"},
+    {"keyword": "trunk_based_dev", "description": "Use trunk-based development for rapid iteration.", "command": "N/A (Process)"},
+    {"keyword": "containerization", "description": "Use Dockerfiles and containers for consistency.", "command": "docker build -t app:latest ."},
+    {"keyword": "documentation", "description": "Document workflows in README or Wiki.", "command": "N/A (Docs)"},
+    {"keyword": "automated_tests", "description": "Run tests on each commit via CI.", "command": "N/A (Actions YAML)"},
+    {"keyword": "infrastructure_as_code_policy", "description": "Mandate IaC to manage infra.", "command": "N/A (Policy)"},
+    {"keyword": "code_review_mandatory", "description": "Require code review before merging.", "command": "N/A (GitHub Settings)"},
+    {"keyword": "continuous_integration", "description": "Integrate changes frequently with CI.", "command": "N/A (Process)"},
+    {"keyword": "continuous_delivery", "description": "Automatically deploy changes to staging or prod.", "command": "N/A (Process + CI/CD)"},
+    {"keyword": "observability", "description": "Add logging/tracing/metrics for DevOps visibility.", "command": "N/A (Tools like Prometheus/Grafana)"},
+    {"keyword": "feature_flags", "description": "Use feature flags for controlled rollouts.", "command": "N/A (Tools like LaunchDarkly)"},
+    {"keyword": "automated_releases", "description": "Use release automation (tags, GitHub Releases).", "command": "gh release create"},
+    {"keyword": "branch_protection_rules", "description": "Protect main branch with rules.", "command": "N/A (GitHub Settings)"},
+    {"keyword": "code_owners", "description": "Define code owners to review critical paths.", "command": "N/A (CODEOWNERS file)"},
+    {"keyword": "dependabot_integrate", "description": "Auto-update dependencies with Dependabot.", "command": "N/A (dependabot.yml)"},
+    {"keyword": "linting", "description": "Run linters on code before merging.", "command": "N/A (CI step)"},
+    {"keyword": "formatters", "description": "Auto-format code to consistent style.", "command": "pre-commit run --all-files"},
+    {"keyword": "commit_conventions", "description": "Enforce conventional commits for clarity.", "command": "N/A (commitlint)"},
+    {"keyword": "production_parity", "description": "Keep staging and prod environments as similar as possible.", "command": "N/A (Practice)"},
+    {"keyword": "immutable_infrastructure", "description": "Rebuild rather than mutate servers.", "command": "N/A (IaC + tooling)"},
+    {"keyword": "blameless_postmortems", "description": "Conduct postmortems after incidents.", "command": "N/A (Process)"},
+    {"keyword": "continuous_learning", "description": "Encourage ongoing training and improvement.", "command": "N/A (Culture)"},
+    {"keyword": "release_changelog", "description": "Maintain changelogs for each release.", "command": "N/A (Keep CHANGELOG.md)"},
+    {"keyword": "tiered_environments", "description": "Use dev, stage, prod tiers for safe rollout.", "command": "N/A (Branches + Environments)"},
+    {"keyword": "dr_test", "description": "Regularly test disaster recovery procedures.", "command": "N/A (Process)"}
+]
+
+gitops_and_platform_entries = [
+    {"keyword": "gitops_concept", "description": "Use Git as single source of truth for infrastructure.", "command": "N/A (Concept)"},
+    {"keyword": "argo_cd", "description": "Use Argo CD to continuously sync desired state.", "command": "argocd app sync <app>"},
+    {"keyword": "flux", "description": "Flux for GitOps-driven Kubernetes deployments.", "command": "flux install"},
+    {"keyword": "policy_as_code", "description": "Enforce policies with OPA or Kyverno in GitOps.", "command": "opa test policy/"},
+    {"keyword": "ephemeral_environments", "description": "Spin up short-lived review environments.", "command": "N/A (Integration with ArgoCD/preview envs)"},
+    {"keyword": "monorepos", "description": "Manage multiple services in one repo with directory-based workflows.", "command": "N/A (Repo Structure)"},
+    {"keyword": "sealed_secrets", "description": "Manage secrets declaratively with Sealed Secrets.", "command": "kubeseal --cert cert.pem < secret.yaml > sealedsecret.yaml"},
+    {"keyword": "kustomize_overlays", "description": "Use Kustomize overlays for env-specific configs.", "command": "kustomize build overlays/staging"},
+    {"keyword": "prometheus_gitops", "description": "Manage Prometheus configs via GitOps.", "command": "N/A (Apply manifests via git)"},
+    {"keyword": "external_dns_gitops", "description": "Manage DNS records via Git-based manifests.", "command": "N/A (ExternalDNS + GitOps)"},
+    {"keyword": "alertmanager_gitops", "description": "Declaratively manage Alertmanager config.", "command": "N/A (alertmanager.yaml in git)"},
+    {"keyword": "canary_deploys", "description": "Use GitOps patterns for canary releases.", "command": "N/A (Argo Rollouts)"},
+    {"keyword": "progressive_delivery", "description": "Automate progressive delivery with GitOps tools.", "command": "N/A (Flagger + GitOps)"},
+    {"keyword": "gitops_policies", "description": "Apply policies as code in GitOps pipeline.", "command": "conftest test manifests/"},
+    {"keyword": "gitops_env_promotion", "description": "Promote changes between envs by merging branches.", "command": "N/A (merge dev->staging->prod)"},
+    {"keyword": "drift_detection", "description": "GitOps detects drift and self-heals infra.", "command": "N/A (Argo CD auto-sync)"},
+    {"keyword": "kpt_gitops", "description": "Use kpt to manage K8s configs in GitOps workflows.", "command": "kpt pkg get"},
+    {"keyword": "helm_gitops", "description": "Use Helm releases in GitOps flows.", "command": "helm repo add ... && flux create helmrelease"},
+    {"keyword": "image_automation", "description": "Automate image updates in Git using Flux Image Automation.", "command": "flux create imageupdate"},
+    {"keyword": "vault_integration", "description": "Integrate HashiCorp Vault secrets into GitOps pipeline.", "command": "N/A (External Secrets Operator)"},
+    {"keyword": "keda_scaling", "description": "Define KEDA scaling via Git manifests.", "command": "N/A (KEDA manifests in repo)"},
+    {"keyword": "tekton_pipelines", "description": "Use Tekton pipelines for GitOps-driven CI/CD.", "command": "kubectl apply -f pipeline.yaml"},
+    {"keyword": "crossplane", "description": "Manage cloud resources declaratively with Crossplane.", "command": "kubectl apply -f crossplane.yaml"},
+    {"keyword": "argo_rollouts", "description": "Progressive delivery with Argo Rollouts manifests.", "command": "kubectl apply -f rollout.yaml"},
+    {"keyword": "gitops_bootstrap", "description": "Bootstrap a GitOps platform environment.", "command": "flux bootstrap github"}
+]
+
+guide = {
+    "foundation": foundation_entries,
+    "access_and_authentication": access_and_authentication_entries,
+    "branching_strategies": branching_strategies_entries,
+    "collaboration_workflows": collaboration_workflows_entries,
+    "automation_ci_cd": automation_ci_cd_entries,
+    "advanced_git_ops": advanced_git_ops_entries,
+    "security_compliance": security_compliance_entries,
+    "infrastructure_as_code": infrastructure_as_code_entries,
+    "devops_best_practices": devops_best_practices_entries,
+    "gitops_and_platform_engineering": gitops_and_platform_entries
+}
+
+def main():
+    os.system('clear' if os.name == 'posix' else 'cls')
+    if len(sys.argv) == 1:
+        # No args: Show categories and usage
+        print_categories()
+        print_usage()
+    elif len(sys.argv) == 2:
+        arg = sys.argv[1]
+        if arg in guide:
+            print_category(arg)
+        else:
+            print_command(arg)
+    else:
+        # Too many args
+        print(f"{YELLOW}Invalid arguments!{RESET}\n")
+        print_usage()
+
+if __name__ == "__main__":
+    main()
