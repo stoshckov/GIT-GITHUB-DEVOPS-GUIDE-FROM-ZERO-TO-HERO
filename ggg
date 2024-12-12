@@ -1,0 +1,809 @@
+#!/usr/bin/env python3
+import os
+import sys
+
+# ANSI color codes for styling
+RESET = "\033[0m"
+BWHITE = "\033[1;37m"
+CYAN = "\033[1;36m"
+YELLOW = "\033[0;33m"
+GREEN = "\033[0;32m"
+BBLUE = "\033[1;34m"
+BOLD = "\033[1m"
+
+def print_title(title):
+    print(f"{BWHITE}{title}{RESET}\n")
+
+def print_categories():
+    print(f"{CYAN}{BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{RESET}")
+    print(f"{BWHITE}{BOLD}                          GIT & GITHUB DEVOPS GUIDE - FROM ZERO TO EXPERT{RESET}")
+    print(f"{CYAN}{BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{RESET}\n")
+    print("Categories:\n")
+    for category in guide.keys():
+        print(f"{CYAN}- {category}{RESET}")
+    print()
+
+def print_usage():
+    print(f"{BWHITE}Usage:{RESET}")
+    print("ggg <category>    # to view all commands and concepts in that category")
+    print("ggg <keyword>     # to view details of a specific command/concept\n")
+
+def print_main_entry(entry):
+    print(f"{BBLUE}{BOLD}───────────────────────────────────────────────────────{RESET}\n")
+    print(f"{BWHITE}🔑 Keyword:{RESET} {entry['keyword']}")
+    print(f"{YELLOW}{entry['description']}{RESET}")
+    print(f"{GREEN}Command: {entry['command']}{RESET}")
+    if "variations" in entry and entry["variations"]:
+        print(f"\n{BBLUE}Variations & Alternatives:{RESET}")
+        for var in entry["variations"]:
+            print(f"{YELLOW}- {var['desc']}{RESET}")
+            print(f"{GREEN}  {var['cmd']}{RESET}")
+
+def print_keyword_list(keywords, items_per_line=6):
+    total = len(keywords)
+    print(f"Total keywords ({total})")
+
+    if total == 0:
+        print("[]\n")
+        return
+
+    print("[", end="")
+    for i, kw in enumerate(keywords):
+        if i > 0 and i % items_per_line == 0:
+            print("\n ", end="")  # newline + space for indentation
+        print(kw, end="")
+        if i < total - 1:
+            print(", ", end="")
+    print("]\n")
+
+def print_category(category):
+    if category not in guide:
+        print(f"{YELLOW}No such category: {category}{RESET}\n")
+        return
+    cat_title = category.replace('_', ' ').upper()
+
+    # Top banner for the category
+    print(f"{CYAN}{BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{RESET}")
+    print(f"{BWHITE}{BOLD}                         🛠️  {cat_title}  🛠️{RESET}")
+    print(f"{CYAN}{BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{RESET}\n")
+
+    overview_text = {
+        "foundation": "Master fundamental Git operations to version your codebase.",
+        "access_and_authentication": "Set up secure and convenient access to GitHub (SSH keys, tokens, credential helpers)."
+    }
+
+    print(f"{YELLOW}🔎 Concept Overview{RESET}")
+    print(f"{CYAN}{BOLD}───────────────────{RESET}")
+    if category in overview_text:
+        print(overview_text[category] + "\n")
+
+    entries = guide[category]
+    keywords = [entry["keyword"] for entry in entries]
+
+    print(f"{BWHITE}📜 Summary{RESET}")
+    print(f"{CYAN}{BOLD}──────────{RESET}")
+    print_keyword_list(keywords, items_per_line=6)
+
+    for entry in entries:
+        print_main_entry(entry)
+        print()
+
+def search_guide(term):
+    term_lower = term.lower()
+    matches = []
+    for category_name, category_commands in guide.items():
+        for entry in category_commands:
+            text_check = entry["keyword"].lower() + " " + entry["description"].lower() + " " + entry["command"].lower()
+            if term_lower in text_check:
+                matches.append((category_name, entry["keyword"]))
+                continue
+            if "variations" in entry:
+                for var in entry["variations"]:
+                    var_text = var["desc"].lower() + " " + var["cmd"].lower()
+                    if term_lower in var_text:
+                        matches.append((category_name, entry["keyword"]))
+                        break
+    return matches
+
+def print_command(keyword):
+    found = False
+    for category_name, category_commands in guide.items():
+        for entry in category_commands:
+            if entry["keyword"] == keyword:
+                cat_title = category_name.replace('_', ' ').upper()
+                print(f"{CYAN}{BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{RESET}")
+                print(f"{BWHITE}{BOLD}                    COMMAND: {keyword} (Category: {cat_title}){RESET}")
+                print(f"{CYAN}{BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{RESET}\n")
+                print_main_entry(entry)
+                found = True
+                break
+        if found:
+            break
+    if not found:
+        matches = search_guide(keyword)
+        if matches:
+            print(f"{YELLOW}No exact command found for keyword: {keyword}{RESET}\n")
+            print(f"{BWHITE}Possible matches:{RESET}")
+            seen = set()
+            for category_name, kw in matches:
+                if (category_name, kw) not in seen:
+                    seen.add((category_name, kw))
+                    cat_title = category_name.replace('_', ' ').upper()
+                    print(f"- {kw} (in {cat_title})")
+        else:
+            print(f"{YELLOW}No command found for keyword: {keyword}{RESET}")
+
+#############################
+# 25 Keywords - FOUNDATION  #
+#############################
+
+foundation_entries = [
+    {
+        "keyword": "init",
+        "description": "Initialize a new Git repository.",
+        "command": "git init",
+        "variations": [
+            {
+                "desc": "Initialize in a specific directory",
+                "cmd": "git init path/to/directory"
+            },
+            {
+                "desc": "Docs & Book Reference",
+                "cmd": "Pro Git Book (Ch. 1.4), Git Docs: https://git-scm.com/docs/git-init"
+            }
+        ]
+    },
+    {
+        "keyword": "config",
+        "description": "Configure user identity and other Git settings.",
+        "command": "git config --global user.name 'Your Name'",
+        "variations": [
+            {
+                "desc": "Set email globally",
+                "cmd": "git config --global user.email 'you@example.com'"
+            },
+            {
+                "desc": "View all config",
+                "cmd": "git config --list"
+            },
+            {
+                "desc": "Docs",
+                "cmd": "https://git-scm.com/docs/git-config"
+            }
+        ]
+    },
+    {
+        "keyword": "add",
+        "description": "Stage changes for the next commit.",
+        "command": "git add <file>",
+        "variations": [
+            {
+                "desc": "Stage all changes",
+                "cmd": "git add ."
+            },
+            {
+                "desc": "Interactive add",
+                "cmd": "git add -p"
+            },
+            {
+                "desc": "Docs",
+                "cmd": "https://git-scm.com/docs/git-add"
+            }
+        ]
+    },
+    {
+        "keyword": "commit",
+        "description": "Record staged changes into the repository’s history.",
+        "command": "git commit -m 'message'",
+        "variations": [
+            {
+                "desc": "Open editor for commit message",
+                "cmd": "git commit"
+            },
+            {
+                "desc": "Amend last commit",
+                "cmd": "git commit --amend"
+            },
+            {
+                "desc": "Docs",
+                "cmd": "https://git-scm.com/docs/git-commit"
+            }
+        ]
+    },
+    {
+        "keyword": "status",
+        "description": "Show the current state of working directory and staging area.",
+        "command": "git status",
+        "variations": [
+            {
+                "desc": "Short status output",
+                "cmd": "git status -s"
+            },
+            {
+                "desc": "Docs",
+                "cmd": "https://git-scm.com/docs/git-status"
+            }
+        ]
+    },
+    {
+        "keyword": "log",
+        "description": "View commit history.",
+        "command": "git log",
+        "variations": [
+            {
+                "desc": "One-line summaries",
+                "cmd": "git log --oneline --graph --decorate"
+            },
+            {
+                "desc": "Docs",
+                "cmd": "https://git-scm.com/docs/git-log"
+            }
+        ]
+    },
+    {
+        "keyword": "diff",
+        "description": "Compare changes between commits, working tree, etc.",
+        "command": "git diff",
+        "variations": [
+            {
+                "desc": "Compare staged changes",
+                "cmd": "git diff --staged"
+            },
+            {
+                "desc": "Docs",
+                "cmd": "https://git-scm.com/docs/git-diff"
+            }
+        ]
+    },
+    {
+        "keyword": "restore",
+        "description": "Restore working tree files or unstage changes.",
+        "command": "git restore <file>",
+        "variations": [
+            {
+                "desc": "Unstage a file",
+                "cmd": "git restore --staged <file>"
+            },
+            {
+                "desc": "Docs",
+                "cmd": "https://git-scm.com/docs/git-restore"
+            }
+        ]
+    },
+    {
+        "keyword": "rm",
+        "description": "Remove files from working tree and index.",
+        "command": "git rm <file>",
+        "variations": [
+            {
+                "desc": "Untrack file but keep locally",
+                "cmd": "git rm --cached <file>"
+            },
+            {
+                "desc": "Docs",
+                "cmd": "https://git-scm.com/docs/git-rm"
+            }
+        ]
+    },
+    {
+        "keyword": "mv",
+        "description": "Move or rename a file.",
+        "command": "git mv old_filename new_filename",
+        "variations": [
+            {
+                "desc": "Docs",
+                "cmd": "https://git-scm.com/docs/git-mv"
+            }
+        ]
+    },
+    {
+        "keyword": "clone",
+        "description": "Clone a repository into a new directory.",
+        "command": "git clone <url>",
+        "variations": [
+            {
+                "desc": "Clone into a specific folder",
+                "cmd": "git clone <url> <folder>"
+            },
+            {
+                "desc": "Docs",
+                "cmd": "https://git-scm.com/docs/git-clone"
+            }
+        ]
+    },
+    {
+        "keyword": "show",
+        "description": "Show various types of objects (commits, trees, tags).",
+        "command": "git show",
+        "variations": [
+            {
+                "desc": "Show a specific commit",
+                "cmd": "git show <commit_hash>"
+            },
+            {
+                "desc": "Docs",
+                "cmd": "https://git-scm.com/docs/git-show"
+            }
+        ]
+    },
+    {
+        "keyword": "blame",
+        "description": "Show author and revision for each line of a file.",
+        "command": "git blame <file>",
+        "variations": [
+            {
+                "desc": "Show email and time details",
+                "cmd": "git blame -e <file>"
+            },
+            {
+                "desc": "Docs",
+                "cmd": "https://git-scm.com/docs/git-blame"
+            }
+        ]
+    },
+    {
+        "keyword": "grep",
+        "description": "Search tracked files for lines matching a pattern.",
+        "command": "git grep <pattern>",
+        "variations": [
+            {
+                "desc": "Case-insensitive search",
+                "cmd": "git grep -i <pattern>"
+            },
+            {
+                "desc": "Docs",
+                "cmd": "https://git-scm.com/docs/git-grep"
+            }
+        ]
+    },
+    {
+        "keyword": "clean",
+        "description": "Remove untracked files from the working tree.",
+        "command": "git clean -f",
+        "variations": [
+            {
+                "desc": "Dry run",
+                "cmd": "git clean -n"
+            },
+            {
+                "desc": "Docs",
+                "cmd": "https://git-scm.com/docs/git-clean"
+            }
+        ]
+    },
+    {
+        "keyword": "ls-files",
+        "description": "Show information about files in the index and working tree.",
+        "command": "git ls-files",
+        "variations": [
+            {
+                "desc": "Docs",
+                "cmd": "https://git-scm.com/docs/git-ls-files"
+            }
+        ]
+    },
+    {
+        "keyword": "help",
+        "description": "Get help about Git commands.",
+        "command": "git help <command>",
+        "variations": [
+            {
+                "desc": "View man page",
+                "cmd": "git help commit"
+            },
+            {
+                "desc": "Docs",
+                "cmd": "https://git-scm.com/docs"
+            }
+        ]
+    },
+    {
+        "keyword": "describe",
+        "description": "Give a human-readable name to a commit based on tags.",
+        "command": "git describe",
+        "variations": [
+            {
+                "desc": "Always show something",
+                "cmd": "git describe --always"
+            },
+            {
+                "desc": "Docs",
+                "cmd": "https://git-scm.com/docs/git-describe"
+            }
+        ]
+    },
+    {
+        "keyword": "reflog",
+        "description": "Show reference logs of commits checked out or moved.",
+        "command": "git reflog",
+        "variations": [
+            {
+                "desc": "Docs",
+                "cmd": "https://git-scm.com/docs/git-reflog"
+            }
+        ]
+    },
+    {
+        "keyword": "apply",
+        "description": "Apply a patch to files and/or to the index.",
+        "command": "git apply <patch>",
+        "variations": [
+            {
+                "desc": "Check patch before applying",
+                "cmd": "git apply --check <patch>"
+            },
+            {
+                "desc": "Docs",
+                "cmd": "https://git-scm.com/docs/git-apply"
+            }
+        ]
+    },
+    {
+        "keyword": "archive",
+        "description": "Create an archive of files from a specific tree-ish.",
+        "command": "git archive <tree-ish>",
+        "variations": [
+            {
+                "desc": "Create tar archive of HEAD",
+                "cmd": "git archive --format=tar HEAD > source.tar"
+            },
+            {
+                "desc": "Docs",
+                "cmd": "https://git-scm.com/docs/git-archive"
+            }
+        ]
+    },
+    {
+        "keyword": "fsck",
+        "description": "Verify the integrity of the repository data.",
+        "command": "git fsck",
+        "variations": [
+            {
+                "desc": "Docs",
+                "cmd": "https://git-scm.com/docs/git-fsck"
+            }
+        ]
+    },
+    {
+        "keyword": "cat-file",
+        "description": "Show content and type of Git objects.",
+        "command": "git cat-file -p <object>",
+        "variations": [
+            {
+                "desc": "Show object type",
+                "cmd": "git cat-file -t <object>"
+            },
+            {
+                "desc": "Docs",
+                "cmd": "https://git-scm.com/docs/git-cat-file"
+            }
+        ]
+    },
+    {
+        "keyword": "gc",
+        "description": "Cleanup unnecessary files and optimize the local repository.",
+        "command": "git gc",
+        "variations": [
+            {
+                "desc": "Aggressive cleanup",
+                "cmd": "git gc --aggressive"
+            },
+            {
+                "desc": "Docs",
+                "cmd": "https://git-scm.com/docs/git-gc"
+            }
+        ]
+    },
+    {
+        "keyword": "notes",
+        "description": "Attach notes to commits without changing commits.",
+        "command": "git notes add",
+        "variations": [
+            {
+                "desc": "Show notes",
+                "cmd": "git notes show <commit>"
+            },
+            {
+                "desc": "Docs",
+                "cmd": "https://git-scm.com/docs/git-notes"
+            }
+        ]
+    }
+]
+
+#############################
+# 25 Keywords - ACCESS & AUTH#
+#############################
+
+access_and_authentication_entries = [
+    {
+        "keyword": "ssh_setup",
+        "description": "Generate SSH keys and add to GitHub for passwordless auth.",
+        "command": "ssh-keygen -t ed25519 -C 'you@example.com'",
+        "variations": [
+            {
+                "desc": "GitHub Docs (SSH)",
+                "cmd": "https://docs.github.com/en/authentication/connecting-to-github-with-ssh"
+            },
+            {
+                "desc": "Pro Git (Ch. 4.9)",
+                "cmd": "https://git-scm.com/book/en/v2/Git-on-the-Server-Generating-Your-SSH-Public-Key"
+            }
+        ]
+    },
+    {
+        "keyword": "personal_access_tokens",
+        "description": "Use GitHub PAT for HTTPS authentication.",
+        "command": "N/A (GitHub UI to generate token)",
+        "variations": [
+            {
+                "desc": "GitHub Docs (PAT)",
+                "cmd": "https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token"
+            }
+        ]
+    },
+    {
+        "keyword": "credential_helper",
+        "description": "Cache or store credentials so you don’t have to re-enter them.",
+        "command": "git config --global credential.helper store",
+        "variations": [
+            {
+                "desc": "Use cache with timeout",
+                "cmd": "git config --global credential.helper 'cache --timeout=3600'"
+            },
+            {
+                "desc": "Docs",
+                "cmd": "https://git-scm.com/docs/gitcredentials"
+            }
+        ]
+    },
+    {
+        "keyword": "github_cli_auth",
+        "description": "Authenticate using GitHub CLI (gh).",
+        "command": "gh auth login",
+        "variations": [
+            {
+                "desc": "Use SSH with gh",
+                "cmd": "gh auth login --git-protocol ssh"
+            },
+            {
+                "desc": "GitHub CLI Docs",
+                "cmd": "https://cli.github.com/manual/gh_auth_login"
+            }
+        ]
+    },
+    {
+        "keyword": "gpg_signing_setup",
+        "description": "Set up GPG to sign commits and tags for authenticity.",
+        "command": "gpg --generate-key",
+        "variations": [
+            {
+                "desc": "Configure Git to sign commits",
+                "cmd": "git config --global commit.gpgsign true"
+            },
+            {
+                "desc": "Docs",
+                "cmd": "https://docs.github.com/en/authentication/managing-commit-signature-verification"
+            }
+        ]
+    },
+    {
+        "keyword": "gpg_signing_commit",
+        "description": "Sign commits with your GPG key.",
+        "command": "git commit -S -m 'signed commit'",
+        "variations": [
+            {
+                "desc": "Docs",
+                "cmd": "https://git-scm.com/book/en/v2/Git-Tools-Signing-Your-Work"
+            }
+        ]
+    },
+    {
+        "keyword": "ssh_agent",
+        "description": "Use ssh-agent to manage your SSH keys in memory.",
+        "command": "eval $(ssh-agent -s)",
+        "variations": [
+            {
+                "desc": "Add SSH key",
+                "cmd": "ssh-add ~/.ssh/id_ed25519"
+            },
+            {
+                "desc": "Docs",
+                "cmd": "https://docs.github.com/en/authentication/connecting-to-github-with-ssh/working-with-ssh-key-passphrases"
+            }
+        ]
+    },
+    {
+        "keyword": "https_auth_store",
+        "description": "Store HTTPS credentials permanently.",
+        "command": "git config --global credential.helper store",
+        "variations": [
+            {
+                "desc": "Docs",
+                "cmd": "https://git-scm.com/docs/gitcredentials#_credential_helpers"
+            }
+        ]
+    },
+    {
+        "keyword": "two_factor_auth",
+        "description": "Enable two-factor authentication on GitHub for enhanced security.",
+        "command": "N/A (GitHub UI)",
+        "variations": [
+            {
+                "desc": "GitHub Docs (2FA)",
+                "cmd": "https://docs.github.com/en/authentication/securing-your-account-with-two-factor-authentication-2fa"
+            }
+        ]
+    },
+    {
+        "keyword": "gpg_verify_commits",
+        "description": "Verify GPG-signed commits and tags.",
+        "command": "git verify-commit <commit>",
+        "variations": [
+            {
+                "desc": "Docs",
+                "cmd": "https://git-scm.com/docs/git-verify-commit"
+            }
+        ]
+    },
+    {
+        "keyword": "ssh_config",
+        "description": "Use SSH config file to define host aliases and settings.",
+        "command": "vim ~/.ssh/config",
+        "variations": [
+            {
+                "desc": "Docs",
+                "cmd": "man ssh_config"
+            }
+        ]
+    },
+    {
+        "keyword": "gh_auth_token",
+        "description": "Authenticate GitHub CLI with a token.",
+        "command": "gh auth login --with-token < token.txt",
+        "variations": [
+            {
+                "desc": "Docs",
+                "cmd": "https://cli.github.com/manual/gh_auth_login"
+            }
+        ]
+    },
+    {
+        "keyword": "credential_timeout",
+        "description": "Set credential cache timeout for HTTPS.",
+        "command": "git config --global credential.helper 'cache --timeout=3600'",
+        "variations": [
+            {
+                "desc": "Docs",
+                "cmd": "https://git-scm.com/docs/gitcredentials"
+            }
+        ]
+    },
+    {
+        "keyword": "gh_auth_status",
+        "description": "Check current GitHub CLI authentication status.",
+        "command": "gh auth status"
+    },
+    {
+        "keyword": "gh_auth_logout",
+        "description": "Log out from GitHub CLI.",
+        "command": "gh auth logout",
+        "variations": [
+            {
+                "desc": "Docs",
+                "cmd": "https://cli.github.com/manual/gh_auth_logout"
+            }
+        ]
+    },
+    {
+        "keyword": "x509_signing",
+        "description": "Use X.509 certificates to sign commits.",
+        "command": "git config --global gpg.format x509"
+    },
+    {
+        "keyword": "askpass",
+        "description": "Use GIT_ASKPASS env var for credentials.",
+        "command": "export GIT_ASKPASS=/path/to/script"
+    },
+    {
+        "keyword": "git_credential_manager",
+        "description": "Use Git Credential Manager for secure credential storage.",
+        "command": "git-credential-manager-core configure",
+        "variations": [
+            {
+                "desc": "Docs",
+                "cmd": "https://aka.ms/gcm"
+            }
+        ]
+    },
+    {
+        "keyword": "ssh_known_hosts",
+        "description": "Manage SSH known hosts file for GitHub.",
+        "command": "cat ~/.ssh/known_hosts"
+    },
+    {
+        "keyword": "gh_secret",
+        "description": "Manage GitHub repository secrets (for CI/CD).",
+        "command": "gh secret set MY_SECRET",
+        "variations": [
+            {
+                "desc": "Docs",
+                "cmd": "https://docs.github.com/en/actions/security-guides/encrypted-secrets"
+            }
+        ]
+    },
+    {
+        "keyword": "gpg_list_keys",
+        "description": "List GPG keys to confirm setup for signing.",
+        "command": "gpg --list-keys"
+    },
+    {
+        "keyword": "ssh_test_connection",
+        "description": "Test SSH authentication to GitHub.",
+        "command": "ssh -T git@github.com",
+        "variations": [
+            {
+                "desc": "Docs",
+                "cmd": "https://docs.github.com/en/authentication/connecting-to-github-with-ssh/testing-your-ssh-connection"
+            }
+        ]
+    },
+    {
+        "keyword": "github_app_auth",
+        "description": "Use GitHub Apps for authentication and fine-grained access.",
+        "command": "N/A (GitHub UI/Apps setup)",
+        "variations": [
+            {
+                "desc": "Docs",
+                "cmd": "https://docs.github.com/en/developers/apps"
+            }
+        ]
+    },
+    {
+        "keyword": "ssh_keys_github_org",
+        "description": "Add SSH keys at org level for CI runners.",
+        "command": "N/A (GitHub Org Settings)",
+        "variations": [
+            {
+                "desc": "Docs",
+                "cmd": "https://docs.github.com/en/authentication/connecting-to-github-with-ssh"
+            }
+        ]
+    },
+    {
+        "keyword": "azure_devops_pat",
+        "description": "If bridging with Azure DevOps, use PAT for that platform too.",
+        "command": "N/A (Azure DevOps UI)",
+        "variations": [
+            {
+                "desc": "Conceptual (if integrating GitHub with Azure DevOps)",
+                "cmd": "https://docs.microsoft.com/azure/devops/"
+            }
+        ]
+    }
+]
+
+guide = {
+    "foundation": foundation_entries,
+    "access_and_authentication": access_and_authentication_entries
+}
+
+def main():
+    os.system('clear' if os.name == 'posix' else 'cls')
+    if len(sys.argv) == 1:
+        # No args: Show categories and usage
+        print_categories()
+        print_usage()
+    elif len(sys.argv) == 2:
+        arg = sys.argv[1]
+        if arg in guide:
+            print_category(arg)
+        else:
+            print_command(arg)
+    else:
+        # Too many args
+        print(f"{YELLOW}Invalid arguments!{RESET}\n")
+        print_usage()
+
+if __name__ == "__main__":
+    main()
