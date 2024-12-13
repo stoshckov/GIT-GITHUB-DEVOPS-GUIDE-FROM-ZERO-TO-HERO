@@ -22,10 +22,10 @@ def setup_logging():
 def color_section_letter(letter):
     """
     Returns the section letter wrapped in ANSI color codes.
-    
+
     Parameters:
         letter (str): The section letter to color.
-    
+
     Returns:
         str: Colored section letter.
     """
@@ -36,7 +36,7 @@ def color_section_letter(letter):
 def write_section(file, title, summary, content):
     """
     Writes a formatted section to the guide file and prints it to the screen.
-    
+
     Parameters:
         file (file object): The file to write to.
         title (str): The title of the section.
@@ -46,7 +46,7 @@ def write_section(file, title, summary, content):
     # Extract the section letter (e.g., 'A' from 'A. Create a New Repository')
     section_letter = title.split('.')[0].strip()
     colored_letter = color_section_letter(section_letter)
-    
+
     # Format the logging message with background color, "Section:" in Bold White,
     # section letter in Bold Red, and the rest in Bold White
     # Example: [Blue BG]Section: A. Create a New Repository written successfully.[Reset]
@@ -54,15 +54,15 @@ def write_section(file, title, summary, content):
         f"{BBLUE_BG}"
         f"{BWHITE}Section:{RESET} "
         f"{colored_letter}. "
-        f"{BWHITE}{title.split('. ', 1)[1]} written successfully.{RESET}"
+        f"{BWHITE}{title.split('. ', 1)[1]}{RESET}"
     )
-    
+
     # Log the formatted message
     logging.info(formatted_title)
-    
+
     # Prepare the section text for the file
     section_text = f"{title}\n\n{summary}\n\n{content}\n\n"
-    
+
     try:
         file.write(section_text)
         print(section_text)  # Print the section to the screen
@@ -72,7 +72,7 @@ def write_section(file, title, summary, content):
 def get_sections():
     """
     Returns a dictionary of guide sections with summaries.
-    
+
     Returns:
         dict: A dictionary where keys are section titles and values are dictionaries
               containing 'summary' and 'content' for each section.
@@ -83,8 +83,80 @@ def get_sections():
             "content": (
                 "1. Create a new directory, navigate into it, and initialize Git:\n"
                 "   mkdir my-new-project && cd my-new-project && git init\n\n"
-                "2. Add files to your repository:\n"
-                "   git add .\n\n"
+                "   # Step 1: Create the new directory with nested subdirectories\n"
+                "   mkdir -p src/utils\n"
+                "   # Step 2: Navigate into the new directory\n"
+                "   cd src/utils\n"
+                "   # Step 3: Create a new utility file\n"
+                "   touch helpers.py\n\n"
+                "   mkdir /Users/stoshckov/Desktop/LAST/TEST-GH\n"
+                "   cd /Users/stoshckov/Desktop/LAST/TEST-GH\n\n"
+                "   # Create a README File (or any other file):\n"
+                "   # echo \"# My New Repository\" > README.md\n"
+                "   # Stage and Commit the File:\n"
+                "   git add README.md\n"
+                "   git commit -m \"Initial commit\"\n"
+                "   # Create and Push to GitHub:\n"
+                "   gh repo create GH-REPO --public --source=. --push\n\n"
+                "   # EXAMPLE: (see gh-cli.txt file)\n"
+                "   stoshckovs-MacBook-Air:TEST-GH stoshckov$ echo \"# My New Repository\" > README.md\n"
+                "   stoshckovs-MacBook-Air:TEST-GH stoshckov$ git add README.md\n"
+                "   stoshckovs-MacBook-Air:TEST-GH stoshckov$ git commit -m \"Initial commit\"\n"
+                "   [master (root-commit) 108cea1] Initial commit\n"
+                "   1 file changed, 1 insertion(+)\n"
+                "   create mode 100644 README.md\n"
+                "   stoshckovs-MacBook-Air:TEST-GH stoshckov$ gh repo create GH-REPO --public --source=. --push\n"
+                "   ✓ Created repository stoshckov/GH-REPO on GitHub\n"
+                "   https://github.com/stoshckov/GH-REPO\n"
+                "   ✓ Added remote git@github.com:stoshckov/GH-REPO.git\n"
+                "   Enumerating objects: 3, done.\n"
+                "   Counting objects: 100% (3/3), done.\n"
+                "   Writing objects: 100% (3/3), 242 bytes | 242.00 KiB/s, done.\n"
+                "   Total 3 (delta 0), reused 0 (delta 0), pack-reused 0\n"
+                "   To github.com:stoshckov/GH-REPO.git\n"
+                "   * [new branch]      HEAD -> master\n"
+                "   Branch 'master' set up to track remote branch 'master' from 'origin'.\n"
+                "   ✓ Pushed commits to git@github.com:stoshckov/GH-REPO.git\n"
+                "   stoshckovs-MacBook-Air:TEST-GH stoshckov$\n"
+
+                "2. Add files to your repository:\n\n"
+                "   # Add a single file\n"
+                "   git add README.md\n"
+                "   # Add multiple specific files\n"
+                "   git add index.html styles.css app.js\n"
+                "   # Add all changes\n"
+                "   git add .\n"
+                "   # or\n"
+                "   git add -A\n"
+                "   # Add files by pattern\n"
+                "   git add *.txt\n"
+                "   git add src/*.js\n"
+                "   # Interactive adding\n"
+                "   git add -p\n"
+                "   # Add all tracked files (modified and deleted)\n"
+                "   git add -u\n"
+                "   # Dry run to preview staged files\n"
+                "   git add --dry-run .\n"
+                "   # Verbose add to see detailed output\n"
+                "   git add -v .\n"
+                "   # Force Adding Ignored Files\n"
+                "   git add -f secret.txt\n"
+                "   # Change File Permissions While Adding\n"
+                "   git add --chmod=+x script.sh\n"
+                "   # Intent to Add (Mark a File as Added Without Content)\n"
+                "   git add -N newfile.txt\n"
+                "   # Interactive Adding with More Options\n"
+                "   git add -i\n"
+                "   # Add All Tracked Files (Modified and Deleted)\n"
+                "   git add --update\n"
+                "   # Refresh the Index Without Adding New Files\n"
+                "   git add --refresh\n"
+                "   # Ignore Missing Files\n"
+                "   git add --ignore-missing file1.txt file2.txt\n"
+                "   # Add Using a Pathspec from a File\n"
+                "   git add --pathspec-from-file=pathspec.txt\n"
+                "   # Null-terminated Pathspec\n"
+                "   git add --pathspec-file-nul=pathspec.txt\n\n"
                 "3. Make your first commit:\n"
                 "   git commit -m \"Initial commit\"\n\n"
                 "4. Other ways to create a new repository/alternatives:\n"
@@ -93,11 +165,11 @@ def get_sections():
                 "      cd <repository-name>\n\n"
                 "   b. Using GitHub (or other platforms) to initialize the repository:\n"
                 "      # Create a new repository directly on GitHub (or another platform) via the web interface\n"
-                "      git clone git@github.com:username/repository-name.git # Once created, clone it locally using\n" 
+                "      git clone git@github.com:username/repository-name.git # Once created, clone it locally using\n"
                 "      cd repository-name                # Navigate into it and verify\n"
             )
         },
-        "B. Link the Local Repository to a Remote Repository": {
+            "B. Link the Local Repository to a Remote Repository": {
             "summary": "Understand how to connect your local Git repository to a remote repository on platforms like GitHub.",
             "content": (
                 "1. Create a new repository on GitHub without initializing it with any files.\n\n"
@@ -192,16 +264,26 @@ def get_sections():
                 "   - Example:\n"
                 "     git push origin simple-branch\n\n"
                 "6. Stay updated:\n"
-                "   git fetch --all\n"
+                "   git fetch --all\n\n"
+                "7. To delete/remove a file both locally and remotely from a branch:\n\n"
+                "   # Step 1: Remove the file locally\n"
+                "       git rm unwanted-file.txt\n\n"
+                "   # Step 2: Commit the changes\n"
+                "       git commit -m \"Remove unwanted-file.txt\"\n\n"
+                "   # Step 3: Push the changes to the remote repository\n"
+                "       git push origin main\n\n"
+                "   # If you accidentally remove a file, you can restore it before committing by running:\n"
+                "       git checkout HEAD -- <file-name>\n"
             )
         }
+        # Other sections follow...
     }
     return sections
 
 def generate_guide(guide_path):
     """
     Generates the Git and GitHub self-study guide.
-    
+
     Parameters:
         guide_path (Path): The path where the guide will be saved.
     """
@@ -226,7 +308,7 @@ def generate_guide(guide_path):
 def parse_arguments():
     """
     Parses command-line arguments.
-    
+
     Returns:
         argparse.Namespace: The parsed arguments.
     """
