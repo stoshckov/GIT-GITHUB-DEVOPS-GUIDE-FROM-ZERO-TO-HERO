@@ -190,7 +190,7 @@ def get_sections():
                 "   git push -u origin master\n"
             )
         },
-        "D. Branching": {
+       "D. Branching": {
             "summary": "Master the art of branching in Git to manage different lines of development effectively.",
             "content": (
                 "1. Create a new branch:\n"
@@ -221,6 +221,35 @@ def get_sections():
                 "   git push origin --delete <branch-name>\n\n"
                 "   - Example:\n"
                 "     git push origin --delete simple-branch\n"
+                "9. Rename branches :\n"
+                "	1. To rename the master branch to main, follow these steps:\n"
+                "	git branch -m master main	#This will rename the master branch to main locally.\n"
+                "	2. Push the Renamed Branch to GitHub\n"
+                "	git push origin main	#This will push the main branch to your remote repository.\n"
+                "	3. Update the Remote's Default Branch\n"
+                "	Now, you'll need to set the new main branch as the default on GitHub. You can do this through the GitHub web interface:\n"
+                "	Go to your repository on GitHub.\n"
+                "	Click on the Settings tab.\n"
+                "	Under the Branches section, find the \"Default branch\" dropdown.\n"
+                "	Select main as the default branch.\n"
+                "	4. Delete the Old master Branch from GitHub\n"
+                "	git push origin --delete master	#After changing the default branch, you can delete the old master branch from GitHub\n"
+                "	5. Update Local Repository References\n"
+                "	git fetch origin		#Lastly, make sure your local repository is using the new default branch name when you pull\n"
+                "	git branch -u origin/main main\n"
+                "	=========================\n"
+                "	Summary of Steps:\n"
+                "	Rename the local branch:\n"
+                "	git branch -m master main\n"
+                "	Push the main branch to GitHub:\n"
+                "	git push origin main\n"
+                "	Set main as the default branch on GitHub.\n"
+                "	Delete the old master branch on GitHub:\n"
+                "	git push origin --delete master\n"
+                "	Update your local branch references:\n"
+                "	git fetch origin\n"
+                "	git branch -u origin/main main\n"
+                "	After this, your repository will use main as the default branch both locally and remotely.\n"
             )
         },
         "E. Clone the Repository": {
