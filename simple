@@ -249,7 +249,13 @@ def get_sections():
                 "	Update your local branch references:\n"
                 "	git fetch origin\n"
                 "	git branch -u origin/main main\n"
-                "	After this, your repository will use main as the default branch both locally and remotely.\n"
+                "	After this, your repository will use main as the default branch both locally and remotely.\n\n"
+                "	The steps are essentially the same for any branch renaming:\n\n"
+                "	Rename locally (git branch -m),\n"
+                "	Push the renamed branch to GitHub (git push origin new-branch-name),\n"
+                "	Change the default branch on GitHub (if necessary),\n"
+                "	Delete the old branch from GitHub (git push origin --delete old-branch-name),\n"
+                "	Update local references to track the new branch name (git branch -u origin/new-branch-name).\n"
             )
         },
         "E. Clone the Repository": {
