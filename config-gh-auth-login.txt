@@ -1,0 +1,25 @@
+
+AFTER INSTALLING, configure auth login: gh <-- brew intall gh
+
+
+stoshckovs-MacBook-Air:LAST stoshckov$ cd GIT-GITHUB-DEVOPS-GUIDE-FROM-ZERO-TO-HERO/
+stoshckovs-MacBook-Air:GIT-GITHUB-DEVOPS-GUIDE-FROM-ZERO-TO-HERO stoshckov$ l
+total 48
+-rw-r--r--  1 501  20    309 Dec 11 21:06 README.md
+-rwxr-xr-x  1 501  20  11138 Dec 12 20:38 simple
+-rw-r--r--  1 501  20   4467 Dec 12 20:41 self_study_guide.md
+stoshckovs-MacBook-Air:GIT-GITHUB-DEVOPS-GUIDE-FROM-ZERO-TO-HERO stoshckov$ gh auth login
+? Where do you use GitHub? GitHub.com
+? What is your preferred protocol for Git operations on this host? SSH
+? Upload your SSH public key to your GitHub account? /Users/stoshckov/.ssh/id_ed25519.pub
+? Title for your SSH key: GitHub CLI
+? How would you like to authenticate GitHub CLI? Login with a web browser
+
+! First copy your one-time code: 8EEE-C37E
+Press Enter to open https://github.com/login/device in your browser...
+✓ Authentication complete.
+- gh config set -h github.com git_protocol ssh
+✓ Configured git protocol
+✓ SSH key already existed on your GitHub account: /Users/stoshckov/.ssh/id_ed25519.pub
+✓ Logged in as stoshckov
+stoshckovs-MacBook-Air:GIT-GITHUB-DEVOPS-GUIDE-FROM-ZERO-TO-HERO stoshckov$

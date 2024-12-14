@@ -1,0 +1,371 @@
+import logging
+from pathlib import Path
+import argparse
+
+# ANSI color codes for styling
+RESET = "\033[0m"
+BWHITE = "\033[1;37m"    # Bold White for "Section:"
+BRED = "\033[1;31m"      # Bold Red for section letters
+BBLUE_BG = "\033[44m"    # Blue background for the entire logging message
+BOLD = "\033[1m"
+
+def setup_logging():
+    """
+    Configures the logging settings.
+    """
+    # Define a custom logging format without the default INFO prefix
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(message)s'  # Remove the default logging level prefix
+    )
+
+def color_section_letter(letter):
+    """
+    Returns the section letter wrapped in ANSI color codes.
+
+    Parameters:
+        letter (str): The section letter to color.
+
+    Returns:
+        str: Colored section letter.
+    """
+    # Define the color for all section letters
+    SECTION_LETTER_COLOR = BRED  # Super bright red for all section letters
+    return f"{SECTION_LETTER_COLOR}{letter}{RESET}"
+
+def write_section(file, title, summary, content):
+    """
+    Writes a formatted section to the guide file and prints it to the screen.
+
+    Parameters:
+        file (file object): The file to write to.
+        title (str): The title of the section.
+        summary (str): A brief summary of the section.
+        content (str): The content of the section.
+    """
+    # Extract the section letter (e.g., 'A' from 'A. Create a New Repository')
+    section_letter = title.split('.')[0].strip()
+    colored_letter = color_section_letter(section_letter)
+
+    # Format the logging message with background color, "Section:" in Bold White,
+    # section letter in Bold Red, and the rest in Bold White
+    # Example: [Blue BG]Section: A. Create a New Repository written successfully.[Reset]
+    formatted_title = (
+        f"{BBLUE_BG}"
+        f"{BWHITE}Section:{RESET} "
+        f"{colored_letter}. "
+        f"{BWHITE}{title.split('. ', 1)[1]}{RESET}"
+    )
+
+    # Log the formatted message
+    logging.info(formatted_title)
+
+    # Prepare the section text for the file
+    section_text = f"{title}\n\n{summary}\n\n{content}\n\n"
+
+    try:
+        file.write(section_text)
+        print(section_text)  # Print the section to the screen
+    except IOError as e:
+        logging.error(f"Failed to write section '{title}': {e}")
+
+def get_sections():
+    """
+    Returns a dictionary of guide sections with summaries.
+
+    Returns:
+        dict: A dictionary where keys are section titles and values are dictionaries
+              containing 'summary' and 'content' for each section.
+    """
+    sections = {
+        "A. Create a New Repository": {
+            "summary": "Learn how to create a new Git repository from scratch, add files, and make your initial commit.",
+            "content": (
+                "1. Create a new directory, navigate into it, and initialize Git:\n"
+                "   mkdir my-new-project && cd my-new-project && git init\n\n"
+                "   # Step 1: Create the new directory with nested subdirectories\n"
+                "   mkdir -p src/utils\n"
+                "   # Step 2: Navigate into the new directory\n"
+                "   cd src/utils\n"
+                "   # Step 3: Create a new utility file\n"
+                "   touch helpers.py\n\n"
+                "   mkdir /Users/stoshckov/Desktop/LAST/TEST-GH\n"
+                "   cd /Users/stoshckov/Desktop/LAST/TEST-GH\n\n"
+                "   # Create a README File (or any other file):\n"
+                "   # echo \"# My New Repository\" > README.md\n"
+                "   # Stage and Commit the File:\n"
+                "   git add README.md\n"
+                "   git commit -m \"Initial commit\"\n"
+                "   # Create and Push to GitHub:\n"
+                "   gh repo create GH-REPO --public --source=. --push\n\n"
+                "   # EXAMPLE: (see gh-cli.txt file)\n"
+                "   stoshckovs-MacBook-Air:TEST-GH stoshckov$ echo \"# My New Repository\" > README.md\n"
+                "   stoshckovs-MacBook-Air:TEST-GH stoshckov$ git add README.md\n"
+                "   stoshckovs-MacBook-Air:TEST-GH stoshckov$ git commit -m \"Initial commit\"\n"
+                "   [master (root-commit) 108cea1] Initial commit\n"
+                "   1 file changed, 1 insertion(+)\n"
+                "   create mode 100644 README.md\n"
+                "   stoshckovs-MacBook-Air:TEST-GH stoshckov$ gh repo create GH-REPO --public --source=. --push\n"
+                "   ✓ Created repository stoshckov/GH-REPO on GitHub\n"
+                "   https://github.com/stoshckov/GH-REPO\n"
+                "   ✓ Added remote git@github.com:stoshckov/GH-REPO.git\n"
+                "   Enumerating objects: 3, done.\n"
+                "   Counting objects: 100% (3/3), done.\n"
+                "   Writing objects: 100% (3/3), 242 bytes | 242.00 KiB/s, done.\n"
+                "   Total 3 (delta 0), reused 0 (delta 0), pack-reused 0\n"
+                "   To github.com:stoshckov/GH-REPO.git\n"
+                "   * [new branch]      HEAD -> master\n"
+                "   Branch 'master' set up to track remote branch 'master' from 'origin'.\n"
+                "   ✓ Pushed commits to git@github.com:stoshckov/GH-REPO.git\n"
+                "   stoshckovs-MacBook-Air:TEST-GH stoshckov$\n"
+
+                "2. Add files to your repository:\n\n"
+                "   # Add a single file\n"
+                "   git add README.md\n"
+                "   # Add multiple specific files\n"
+                "   git add index.html styles.css app.js\n"
+                "   # Add all changes\n"
+                "   git add .\n"
+                "   # or\n"
+                "   git add -A\n"
+                "   # Add files by pattern\n"
+                "   git add *.txt\n"
+                "   git add src/*.js\n"
+                "   # Interactive adding\n"
+                "   git add -p\n"
+                "   # Add all tracked files (modified and deleted)\n"
+                "   git add -u\n"
+                "   # Dry run to preview staged files\n"
+                "   git add --dry-run .\n"
+                "   # Verbose add to see detailed output\n"
+                "   git add -v .\n"
+                "   # Force Adding Ignored Files\n"
+                "   git add -f secret.txt\n"
+                "   # Change File Permissions While Adding\n"
+                "   git add --chmod=+x script.sh\n"
+                "   # Intent to Add (Mark a File as Added Without Content)\n"
+                "   git add -N newfile.txt\n"
+                "   # Interactive Adding with More Options\n"
+                "   git add -i\n"
+                "   # Add All Tracked Files (Modified and Deleted)\n"
+                "   git add --update\n"
+                "   # Refresh the Index Without Adding New Files\n"
+                "   git add --refresh\n"
+                "   # Ignore Missing Files\n"
+                "   git add --ignore-missing file1.txt file2.txt\n"
+                "   # Add Using a Pathspec from a File\n"
+                "   git add --pathspec-from-file=pathspec.txt\n"
+                "   # Null-terminated Pathspec\n"
+                "   git add --pathspec-file-nul=pathspec.txt\n\n"
+                "3. Make your first commit:\n"
+                "   git commit -m \"Initial commit\"\n\n"
+                "4. Other ways to create a new repository/alternatives:\n"
+                "   a. Create a local copy of an existing remote repository:\n"
+                "      git clone <repository-url>        # Copies all files, branches, and commit history to your local machine\n"
+                "      cd <repository-name>\n\n"
+                "   b. Using GitHub (or other platforms) to initialize the repository:\n"
+                "      # Create a new repository directly on GitHub (or another platform) via the web interface\n"
+                "      git clone git@github.com:username/repository-name.git # Once created, clone it locally using\n"
+                "      cd repository-name                # Navigate into it and verify\n"
+            )
+        },
+            "B. Link the Local Repository to a Remote Repository": {
+            "summary": "Understand how to connect your local Git repository to a remote repository on platforms like GitHub.",
+            "content": (
+                "1. Create a new repository on GitHub without initializing it with any files.\n\n"
+                "2. Add the remote URL to your local repository:\n"
+                "   git remote add origin <REMOTE_URL>\n\n"
+                "3. Verify the remote repository URL:\n"
+                "   git remote -v\n\n"
+                "4. If needed, update the remote repository URL:\n"
+                "   git remote set-url origin https://github.com/username/repository.git\n"
+            )
+        },
+        "C. Push the Initial Commit to the Remote Repository": {
+            "summary": "Learn how to push your initial commit from the local repository to the remote repository.",
+            "content": (
+                "1. Push your local commits to the remote repository:\n"
+                "   git push -u origin main\n\n"
+                "   If your default branch is 'master' instead of 'main', use:\n"
+                "   git push -u origin master\n"
+            )
+        },
+       "D. Branching": {
+            "summary": "Master the art of branching in Git to manage different lines of development effectively.",
+            "content": (
+                "1. Create a new branch:\n"
+                "   git checkout -b <branch-name>\n\n"
+                "2. View all branches:\n"
+                "   git branch\n"
+                "   git branch -r\n\n"
+                "   - `git branch -r`: Lists all remote-tracking branches.\n\n"
+                "3. Switch to an existing branch:\n"
+                "   git checkout <branch-name>\n\n"
+                "4. Work on the new branch (make changes, stage, and commit):\n"
+                "   git add .\n"
+                "   git commit -m 'Your message'\n\n"
+                "5. Push the new branch to remote:\n"
+                "   git push -u origin <branch-name>\n\n"
+                "   - Example:\n"
+                "     git push -u origin simple-branch\n\n"
+                "6. Merge the branch back to main:\n"
+                "   git checkout main\n"
+                "   git pull origin main\n"
+                "   git merge <branch-name>\n"
+                "   git push origin main\n\n"
+                "7. Delete the merged branch locally:\n"
+                "   git branch -d <branch-name>\n\n"
+                "   - Or force delete unmerged branches:\n"
+                "     git branch -D <branch-name>\n\n"
+                "8. Delete the branch from the remote repository:\n"
+                "   git push origin --delete <branch-name>\n\n"
+                "   - Example:\n"
+                "     git push origin --delete simple-branch\n"
+                "9. Rename branches :\n"
+                "	1. To rename the master branch to main, follow these steps:\n"
+                "	git branch -m master main	#This will rename the master branch to main locally.\n"
+                "	2. Push the Renamed Branch to GitHub\n"
+                "	git push origin main	#This will push the main branch to your remote repository.\n"
+                "	3. Update the Remote's Default Branch\n"
+                "	Now, you'll need to set the new main branch as the default on GitHub. You can do this through the GitHub web interface:\n"
+                "	Go to your repository on GitHub.\n"
+                "	Click on the Settings tab.\n"
+                "	Under the Branches section, find the \"Default branch\" dropdown.\n"
+                "	Select main as the default branch.\n"
+                "	4. Delete the Old master Branch from GitHub\n"
+                "	git push origin --delete master	#After changing the default branch, you can delete the old master branch from GitHub\n"
+                "	5. Update Local Repository References\n"
+                "	git fetch origin		#Lastly, make sure your local repository is using the new default branch name when you pull\n"
+                "	git branch -u origin/main main\n"
+                "	=========================\n"
+                "	Summary of Steps:\n"
+                "	Rename the local branch:\n"
+                "	git branch -m master main\n"
+                "	Push the main branch to GitHub:\n"
+                "	git push origin main\n"
+                "	Set main as the default branch on GitHub.\n"
+                "	Delete the old master branch on GitHub:\n"
+                "	git push origin --delete master\n"
+                "	Update your local branch references:\n"
+                "	git fetch origin\n"
+                "	git branch -u origin/main main\n"
+                "	After this, your repository will use main as the default branch both locally and remotely.\n\n"
+                "	The steps are essentially the same for any branch renaming:\n\n"
+                "	Rename locally (git branch -m),\n"
+                "	Push the renamed branch to GitHub (git push origin new-branch-name),\n"
+                "	Change the default branch on GitHub (if necessary),\n"
+                "	Delete the old branch from GitHub (git push origin --delete old-branch-name),\n"
+                "	Update local references to track the new branch name (git branch -u origin/new-branch-name).\n"
+            )
+        },
+        "E. Clone the Repository": {
+            "summary": "Discover how to clone an existing repository and manage multiple branches effectively.",
+            "content": (
+                "1. Clone the repository:\n"
+                "   git clone <REPO_URL>\n\n"
+                "2. Fetch all branches:\n"
+                "   git fetch --all\n\n"
+                "3. List all branches:\n"
+                "   git branch -a\n\n"
+                "4. Check out all remote branches:\n"
+                "   for branch in $(git branch -r | grep -v '\\->'); do\n"
+                "       git branch --track \"${branch#origin/}\" \"$branch\"\n"
+                "   done\n\n"
+                "5. Pull updates for all branches:\n"
+                "   git pull --all\n"
+            )
+        },
+        "F. Update a Branch After Cloning": {
+            "summary": "Learn how to keep your branches up-to-date with remote changes and handle potential conflicts.",
+            "content": (
+                "1. Ensure you’re on the desired branch:\n"
+                "   git checkout <branch-name>\n\n"
+                "2. Pull updates from the remote:\n"
+                "   git pull origin <branch-name>\n\n"
+                "   - Example:\n"
+                "     git pull origin simple-branch\n\n"
+                "3. Fetch without automatically merging:\n"
+                "   git fetch\n"
+                "   git fetch origin\n"
+                "   git pull origin <branch-name>\n\n"
+                "   - Example:\n"
+                "     git pull origin simple-branch\n\n"
+                "4. Handle potential conflicts:\n"
+                "   Resolve conflicts manually in your editor, then:\n"
+                "   git add <file>\n"
+                "   git commit\n\n"
+                "5. Push local changes back to remote:\n"
+                "   git push origin <branch-name>\n\n"
+                "   - Example:\n"
+                "     git push origin simple-branch\n\n"
+                "6. Stay updated:\n"
+                "   git fetch --all\n\n"
+                "7. To delete/remove a file both locally and remotely from a branch:\n\n"
+                "   # Step 1: Remove the file locally\n"
+                "       git rm unwanted-file.txt\n\n"
+                "   # Step 2: Commit the changes\n"
+                "       git commit -m \"Remove unwanted-file.txt\"\n\n"
+                "   # Step 3: Push the changes to the remote repository\n"
+                "       git push origin main\n\n"
+                "   # If you accidentally remove a file, you can restore it before committing by running:\n"
+                "       git checkout HEAD -- <file-name>\n"
+            )
+        }
+        # Other sections follow...
+    }
+    return sections
+
+def generate_guide(guide_path):
+    """
+    Generates the Git and GitHub self-study guide.
+
+    Parameters:
+        guide_path (Path): The path where the guide will be saved.
+    """
+    sections = get_sections()
+    header = "# Git and GitHub Self-Study Guide\n=================================\n\n"
+
+    try:
+        with guide_path.open("w") as guide:
+            guide.write(header)
+            logging.info("Header written successfully.")
+            print(header)  # Print the header to the screen
+
+            for title, details in sections.items():
+                summary = details["summary"]
+                content = details["content"]
+                write_section(guide, title, summary, content)
+
+        logging.info(f"Self-study guide has been saved to: {guide_path.resolve()}")
+    except Exception as e:
+        logging.error(f"An error occurred while generating the guide: {e}")
+
+def parse_arguments():
+    """
+    Parses command-line arguments.
+
+    Returns:
+        argparse.Namespace: The parsed arguments.
+    """
+    parser = argparse.ArgumentParser(
+        description="Generate a Git and GitHub self-study guide."
+    )
+    parser.add_argument(
+        '--output',
+        type=str,
+        default='self_study_guide.md',
+        help='Output file path (default: self_study_guide.md)'
+    )
+    return parser.parse_args()
+
+def main():
+    """
+    The main function that orchestrates guide generation.
+    """
+    setup_logging()
+    args = parse_arguments()
+    guide_path = Path(args.output)
+    generate_guide(guide_path)
+
+if __name__ == "__main__":
+    main()
