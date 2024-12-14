@@ -184,10 +184,18 @@ def get_sections():
         "C. Push the Initial Commit to the Remote Repository": {
             "summary": "Learn how to push your initial commit from the local repository to the remote repository.",
             "content": (
-                "1. Push your local commits to the remote repository:\n"
-                "   git push -u origin main\n\n"
-                "   If your default branch is 'master' instead of 'main', use:\n"
-                "   git push -u origin master\n"
+            "1. Push your local commits to the remote repository:\n"
+            "   git push -u origin main\n\n"
+            "   #If your default branch is 'master' instead of 'main', use:\n"
+            "   git push -u origin master\n"
+            "2. Stash Your Changes\n\n"
+            "   # If you want to temporarily save your changes without committing them:\n"
+            "   git stash\n"
+            "   # If you want to apply your stashed changes later, run:\n"
+            "   git stash apply\n"
+            "   Discard Your Changes\n"
+            "   #If you don’t need the changes and want to discard them:\n"
+            "   git checkout -- self_study_guide.md\n"
             )
         },
        "D. Branching": {
