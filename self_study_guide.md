@@ -170,6 +170,43 @@ Master the art of branching in Git to manage different lines of development effe
 
    - Example:
      git push origin --delete simple-branch
+9. Rename branches :
+	1. To rename the master branch to main, follow these steps:
+	git branch -m master main	#This will rename the master branch to main locally.
+	2. Push the Renamed Branch to GitHub
+	git push origin main	#This will push the main branch to your remote repository.
+	3. Update the Remote's Default Branch
+	Now, you'll need to set the new main branch as the default on GitHub. You can do this through the GitHub web interface:
+	Go to your repository on GitHub.
+	Click on the Settings tab.
+	Under the Branches section, find the "Default branch" dropdown.
+	Select main as the default branch.
+	4. Delete the Old master Branch from GitHub
+	git push origin --delete master	#After changing the default branch, you can delete the old master branch from GitHub
+	5. Update Local Repository References
+	git fetch origin		#Lastly, make sure your local repository is using the new default branch name when you pull
+	git branch -u origin/main main
+	=========================
+	Summary of Steps:
+	Rename the local branch:
+	git branch -m master main
+	Push the main branch to GitHub:
+	git push origin main
+	Set main as the default branch on GitHub.
+	Delete the old master branch on GitHub:
+	git push origin --delete master
+	Update your local branch references:
+	git fetch origin
+	git branch -u origin/main main
+	After this, your repository will use main as the default branch both locally and remotely.
+
+	The steps are essentially the same for any branch renaming:
+
+	Rename locally (git branch -m),
+	Push the renamed branch to GitHub (git push origin new-branch-name),
+	Change the default branch on GitHub (if necessary),
+	Delete the old branch from GitHub (git push origin --delete old-branch-name),
+	Update local references to track the new branch name (git branch -u origin/new-branch-name).
 
 
 E. Clone the Repository
