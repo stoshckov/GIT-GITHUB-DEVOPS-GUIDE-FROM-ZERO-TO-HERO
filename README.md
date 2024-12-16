@@ -60,4 +60,147 @@ Example- How to rename a branch:
 	
 	***After this, your repository will use main as the default branch both locally and remotely.
 
+## Detailed Examples for DevOps
+
+### 1. CI/CD with GitHub Actions
+
+GitHub Actions allows you to automate workflows for your repositories. Here’s an example of a basic CI/CD pipeline that runs tests and deploys your code whenever a commit is made to the `main` branch.
+
+#### Example: Basic CI/CD Pipeline with GitHub Actions
+```yaml
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+
+    - name: Run tests
+      run: |
+        pytest
+
+    - name: Deploy
+      if: success()
+      run: |
+        echo "Deploying application to production..."
+        # Deploy commands go here
+
+
+pipeline {
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git 'https://github.com/your-username/your-repo.git'
+            }
+        }
+        stage('Build') {
+            steps {
+                sh 'echo "Building project..."'
+                // Add your build commands here, e.g., npm run build or mvn install
+            }
+        }
+        stage('Test') {
+            steps {
+                sh 'echo "Running tests..."'
+                // Add your test commands here, e.g., pytest or npm test
+            }
+        }
+        stage('Deploy') {
+            steps {
+                sh 'echo "Deploying..."'
+                // Add your deployment commands here, e.g., kubectl apply or scp commands
+            }
+        }
+    }
+}
+
+
+FROM python:3.9-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+
+RUN pip install -r requirements.txt
+
+COPY . .
+
+CMD ["python", "app.py"]
+
+
+name: Docker Build and Push
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Docker
+      uses: docker/setup-buildx-action@v2
+
+    - name: Build Docker image
+      run: |
+        docker build -t yourusername/your-repo .
+    
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Push Docker image
+      run: |
+        docker push yourusername/your-repo
+
+
+name: Deploy to Kubernetes
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up kubectl
+      uses: azure/setup-kubectl@v1
+
+    - name: Deploy to Kubernetes
+      run: |
+        kubectl apply -f k8s/deployment.yaml
+        kubectl rollout status deployment/my-deployment
+
 
