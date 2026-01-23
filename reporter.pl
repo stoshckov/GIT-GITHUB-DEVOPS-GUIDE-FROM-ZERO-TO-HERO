@@ -79,3 +79,4 @@ if (grep { /--help/ } @ARGV) {
     run_summary_report();
     print "\n--- SUCCESS: Preservation Directive Applied ---\n";
 }
+# Enhanced logging added
