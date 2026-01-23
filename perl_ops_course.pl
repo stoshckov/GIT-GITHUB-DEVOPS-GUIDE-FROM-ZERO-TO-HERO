@@ -1,55 +1,40 @@
-#!/usr/bin/perl -T
+#!/usr/bin/perl
 use strict;
 use warnings;
-use JSON;
-use IO::Socket::INET;
+use DBI;
 
-# Security Scrub
-delete @ENV{qw(IFS CDPATH ENV BASH_ENV)};
-$ENV{'PATH'} = '/bin:/usr/bin';
+print "--- PERL OPS COURSE: LEVEL 3 ---\n";
+print "Lesson 3: DBI & SQLite Persistence\n";
 
-print "--- PERL OPS COURSE: LEVEL 2 FINALE ---\n";
+# 1. Connect to (or create) the database file
+my $db_file = "ops_metrics.db";
+my $dbh = DBI->connect("dbi:SQLite:dbname=$db_file", "", "", { RaiseError => 1 })
+    or die $DBI::errstr;
 
-# 1. Our Inventory (Usually from an API)
-my $json_data = '{
-    "check_list": [
-        {"name": "Google_Web", "host": "google.com", "port": 80},
-        {"name": "Cloudflare_DNS", "host": "1.1.1.1", "port": 53},
-        {"name": "Local_SSH", "host": "127.0.0.1", "port": 22}
-    ]
-}';
+# 2. Create a table if it doesn't exist
+$dbh->do("CREATE TABLE IF NOT EXISTS scan_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    target TEXT,
+    status TEXT,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+)");
 
-my $inventory = decode_json($json_data);
+# 3. Log a new scan result
+my $target = "10.0.0.5";
+my $status = "UP";
 
-print "Starting Parallel Service Monitor...\n\n";
+my $sth = $dbh->prepare("INSERT INTO scan_history (target, status) VALUES (?, ?)");
+$sth->execute($target, $status);
 
-foreach my $service (@{$inventory->{check_list}}) {
-    my $pid = fork();
+print "Logged check for $target to $db_file.\n";
 
-    if (!defined $pid) { die "Fork Failed: $!"; }
+# 4. Query the last 3 entries
+print "\nRecent Scan History:\n";
+my $results = $dbh->selectall_arrayref("SELECT target, status, timestamp FROM scan_history ORDER BY id DESC LIMIT 3");
 
-    if ($pid == 0) {
-        # --- CHILD WORKER ---
-        my $socket = IO::Socket::INET->new(
-            PeerAddr => $service->{host},
-            PeerPort => $service->{port},
-            Proto    => 'tcp',
-            Timeout  => 2
-        );
-
-        if ($socket) {
-            print "[OK]   $service->{name} ($service->{host}:$service->{port})\n";
-            $socket->close();
-            exit(0);
-        } else {
-            print "[FAIL] $service->{name} ($service->{host}:$service->{port}) -> $!\n";
-            exit(1);
-        }
-    }
+foreach my $row (@$results) {
+    print " - $row->[2] | $row->[0] is $row->[1]\n";
 }
 
-# --- PARENT REAPER ---
-# Wait for all 3 children to finish
-while (wait() != -1) {}
-
-print "\n--- Level 2 COMPLETE: You are a System Scripter! ---\n";
+$dbh->disconnect();
+print "\n--- Level 3: Lesson 3 Complete ---\n";

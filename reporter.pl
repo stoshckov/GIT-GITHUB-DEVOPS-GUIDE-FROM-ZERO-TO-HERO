@@ -37,7 +37,7 @@ sub send_alert {
     });
 
     if ($response->{success}) {
-        print "[SUCCESS] Alert dispatched to infrastructure channel.\n";
+        print "[SUCCESS] Alert dispatched to Slack alerts.\n";
     } else {
         print "[WARN] Alert failed: $response->{status} $response->{reason}\n";
     }
